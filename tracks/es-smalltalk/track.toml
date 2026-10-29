@@ -1,0 +1,26 @@
+id = "es-smalltalk"
+version = "1.0.0"
+language = "es"
+title = "Spanish small talk with friends"
+description = "Two short sessions of informal conversation (tú): talking about yourself and your likes, then the weekend and making plans."
+source = "Spanish small talk"
+learner_context = "a beginner who wants to chat informally with Spanish-speaking friends"
+
+# This track is informal: the teacher's classroom phrases use tú instead of
+# the language profile's usted.
+[phrases]
+repeat_please = "Repite, por favor."
+go_on = "Sigue."
+listen_repeat = "Escucha y repite."
+now_you = "Ahora inténtalo tú."
+english_please = "En inglés, porfa"
+
+[[sessions]]
+number = 1
+title = "Talking about yourself"
+parts = ["A", "B"]
+
+[[sessions]]
+number = 2
+title = "The weekend and making plans"
+parts = ["A", "B"]

@@ -1,0 +1,15 @@
+# Copy to ./lal.toml or ~/.config/learnanylanguage/lal.toml. Every key is optional.
+
+# Where installed tracks and (by default) learner data live.
+# home = "~/.local/share/learnanylanguage"
+
+# Learner data: profile, trackers, transcripts, queues. A private git
+# repository is a good place for it.
+# data_dir = "~/projects/my-language-learning"
+
+# Extra track folders, searched before installed tracks (for writing tracks).
+# track_path = ["tracks"]
+
+# Who publishes tracks: GitHub repos (latest release, or owner/repo@tag),
+# index URLs, or local dist/ folders. Searched in order.
+sources = ["diegoami/learnanylanguage"]

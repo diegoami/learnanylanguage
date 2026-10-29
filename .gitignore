@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+dist/
+.pytest_cache/
+# Learner data (profile, trackers, transcripts) lives outside the engine;
+# point LAL_DATA at a private repository to keep it under version control.
+learner/
+lal.toml

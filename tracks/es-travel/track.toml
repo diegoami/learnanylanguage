@@ -1,0 +1,22 @@
+id = "es-travel"
+version = "1.0.0"
+language = "es"
+title = "Spanish for a first trip"
+description = "Three short sessions for a beginner's first trip to Spain: greetings and getting by, café and paying, directions and transport. Formal register (usted)."
+source = "Spanish travel"
+learner_context = "a beginner preparing for a first trip to Spain"
+
+[[sessions]]
+number = 1
+title = "Greetings and getting by"
+parts = ["A", "B"]
+
+[[sessions]]
+number = 2
+title = "Café, food and paying"
+parts = ["A", "B"]
+
+[[sessions]]
+number = 3
+title = "Directions and transport"
+parts = ["A", "B"]

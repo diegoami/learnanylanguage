@@ -1,0 +1,45 @@
+id = "uk-reactivation"
+version = "1.0.0"
+language = "uk"
+title = "Ukrainian reactivation after a Pimsleur-style Level 1"
+description = "Seven short sessions that reactivate beginner Ukrainian: repair language, introductions, food and shopping, time and arrangements, directions, daily life, and an integrated final check. Original material with verified stress marks."
+# Label used in every practice-history and queue entry from this track.
+source = "Pimsleur review"
+# Completes the teacher's ROLE line: "... one adult learner who is <learner_context>."
+learner_context = "reactivating Ukrainian learnt earlier with Pimsleur"
+origin = "Ported from diegoami/learnukrainian (pimsleur-review), 2026-10-29"
+
+[[sessions]]
+number = 0
+title = "Diagnostic conversation"
+parts = ["A", "B"]
+
+[[sessions]]
+number = 1
+title = "Introductions and conversational control"
+parts = ["A", "B", "C"]
+
+[[sessions]]
+number = 2
+title = "Food, shopping, numbers and payment"
+parts = ["A", "B", "C"]
+
+[[sessions]]
+number = 3
+title = "Time, invitations and arrangements"
+parts = ["A", "B", "C"]
+
+[[sessions]]
+number = 4
+title = "Places, movement and directions"
+parts = ["A", "B", "C"]
+
+[[sessions]]
+number = 5
+title = "People, possessions and daily life"
+parts = ["A", "B", "C"]
+
+[[sessions]]
+number = 6
+title = "Integrated conversation and final check"
+parts = ["A", "B"]

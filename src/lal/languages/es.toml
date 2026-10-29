@@ -1,0 +1,23 @@
+# Language profile: the classroom phrases the voice teacher uses, and the
+# built-in checks that run on lesson text in this language.
+code = "es"
+name = "Spanish"
+native_name = "Español"
+
+start = "Empecemos"
+close = "La clase ha terminado."
+english_please = "En inglés, por favor"
+praise = ["Muy bien", "Excelente", "Perfecto", "Genial"]
+ack = ["Sí.", "Bien."]
+repeat_please = "Repita, por favor."
+go_on = "Continúe."
+stop = "Terminemos"
+listen_repeat = "Escuche y repita."
+now_you = "Ahora inténtelo usted."
+correction = "Corrección:"
+interference = ""
+# Spanish spelling already shows irregular stress; no pedagogical marks.
+stress_rule = ""
+
+start_spoken = "Empecemos"
+checks = ["es_punctuation"]

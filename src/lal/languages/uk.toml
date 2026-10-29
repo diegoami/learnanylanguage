@@ -1,0 +1,24 @@
+# Language profile: the classroom phrases the voice teacher uses, and the
+# built-in checks that run on lesson text in this language.
+code = "uk"
+name = "Ukrainian"
+native_name = "Українська"
+
+start = "Почнімо"
+close = "Заняття закінчено."
+english_please = "Англійською, будь ласка"
+praise = ["Чудово", "Молодець", "Відмінно", "Дуже добре"]
+ack = ["Так.", "Добре."]
+repeat_please = "Повторіть, будь ласка."
+go_on = "Продовжуйте."
+stop = "Закінчимо"
+listen_repeat = "Послухайте й повторіть."
+now_you = "Тепер спробуйте самі."
+correction = "Виправлення:"
+# A word from this language counts as interference in free conversation.
+interference = "a Russian word"
+stress_rule = "The brief marks stress with an acute accent (ка́ва). Pronounce every word with that stress, and never mention the marks."
+
+# Spoken by the learner at the start; accented for the learner's README.
+start_spoken = "Почні́мо"
+checks = ["uk_stress"]

@@ -1,0 +1,41 @@
+name: Release tracks
+
+# Push a tag such as tracks-2026.10.29 to publish every track in tracks/ as
+# release assets: one <id>-<version>.tar.gz per track and tracks-index.json.
+# `lal track install <id>` reads releases/latest/download/tracks-index.json.
+on:
+  push:
+    tags: ["tracks-*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to create (e.g. tracks-2026.10.29)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync
+      - run: uv run pytest -q
+      - run: uv run lal track validate tracks/*
+      - run: uv run lal track pack tracks/* --out dist --index
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          {
+            echo "Tracks in this release:"
+            echo
+            jq -r '.tracks[] | "- `\(.id)` \(.version) (\(.language)): \(.title)"' dist/tracks-index.json
+            echo
+            echo "Install with \`lal track install <id>\`."
+          } > notes.md
+          gh release create "$TAG" dist/*.tar.gz dist/tracks-index.json \
+            --title "Tracks $TAG" --notes-file notes.md --latest

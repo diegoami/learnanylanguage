@@ -226,3 +226,52 @@ languages, transcription, session limits),
 [ephemeral tokens](https://ai.google.dev/gemini-api/docs/ephemeral-tokens)
 and [pricing](https://ai.google.dev/gemini-api/docs/pricing); voice-teacher's
 POC 1, POC 5 and architecture notes.
+
+## The client: one app, the teacher chosen per lesson
+
+Decided direction (2026-10-29): a **static web app** (installable on the
+phone) that runs `lal` packages with the teacher chosen per lesson. No
+server and no tunnel: voice-teacher needed a Cloudflare tunnel only because
+its keys lived on a PC server and a phone may use the microphone only on
+HTTPS or `localhost`. A page that holds the learner's own keys and calls the
+providers itself can be served from GitHub Pages (HTTPS) or from `localhost`.
+
+Checked 2026-10-29 with CORS preflights from a github.io origin: OpenRouter
+chat, Gemini `generateContent`, ElevenLabs speech-to-text and
+text-to-speech, the GitHub API and `raw.githubusercontent.com` all accept
+calls from a browser page. A ChatGPT share page does **not** (no CORS
+header), so the page cannot read a share link itself.
+
+| Teacher | How the lesson runs | Transcript | Where |
+| --- | --- | --- | --- |
+| **ChatGPT Voice** (subscription, today's flow) | the app copies the package and opens ChatGPT; the learner pastes, speaks, shares the chat and pastes the share link back | the app stores the link in the lesson folder; `lal share` (the agent, on the PC) turns it into the transcript | phone or PC |
+| **ChatGPT, signed in** ("Sign in with ChatGPT", plan usage) | the app sends the package and turns through the Responses API on the learner's ChatGPT plan | written by the app | PC, locally (`localhost`); text only |
+| **Own keys, typed** (OpenRouter or Gemini) | as above, with the learner's key | written by the app | phone or PC |
+| **Own keys, voice** (ElevenLabs + OpenRouter/Gemini) | tap to talk → Scribe (language locked) → chat model → Multilingual v2 | written by the app | phone or PC |
+
+About signing in to ChatGPT, from OpenAI's own pages (checked 2026-10-29):
+"Sign in with ChatGPT" lets Plus and Pro subscribers spend their plan in
+other apps through OAuth (PKCE, a loopback redirect to `127.0.0.1`, scope
+`chatgpt.tokens.use.direct`), with no API key. It is open to open-source
+projects and personal projects that run locally; paid or remotely hosted
+apps join a waitlist. It covers the **Responses API** only: nothing says it
+covers Realtime, speech-to-text or text-to-speech, and **ChatGPT Voice
+itself has no API**. So signing in can drive typed lessons (or be the
+teacher model between ElevenLabs' recognition and voice) when the app runs
+on the PC; ChatGPT Voice stays a copy-paste-share hand-off. Logging in with
+a captured ChatGPT web session instead would break OpenAI's terms and break
+whenever the site changes: not an option.
+
+Lessons are pluggable: the app lists prepared but unrecorded lesson folders
+in the private learner repository (GitHub API, a fine-grained token for that
+one repository) and opens any `package.md` from a file or a paste. It writes
+`transcript.md` (or, for ChatGPT Voice, the share link) back into the
+lesson folder, in the format `lal share` writes, so `lal report` and the
+record workflow work unchanged. Keys stay in the browser's storage on the
+learner's device and go only to their provider; the page loads no
+third-party scripts.
+
+Sources for this section: [Sign in with ChatGPT](https://developers.openai.com/siwc),
+[its quickstart](https://developers.openai.com/siwc/quickstart),
+[the cookbook guide](https://developers.openai.com/cookbook/articles/sign-in-with-chatgpt),
+[help article](https://help.openai.com/en/articles/20001410-sign-in-with-chatgpt).

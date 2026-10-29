@@ -10,7 +10,12 @@ TRACKS = REPO / "tracks"
 
 @pytest.fixture
 def cfg(tmp_path, monkeypatch) -> config.Config:
-    """A config whose installed tracks and learner data live in tmp_path."""
+    """A config whose installed tracks and learner data live in tmp_path.
+
+    HOME moves too, so a real ~/.config/learnanylanguage/lal.toml (and the
+    learner data it points to) is never read or written by a test.
+    """
+    monkeypatch.setenv("HOME", str(tmp_path / "user"))
     monkeypatch.setenv("LAL_HOME", str(tmp_path / "home"))
     monkeypatch.delenv("LAL_DATA", raising=False)
     monkeypatch.delenv("LAL_TRACK_PATH", raising=False)

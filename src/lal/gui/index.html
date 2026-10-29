@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learning Progress</title>
+<style>
+:root {
+  --bg: #f7f6f3; --panel: #ffffff; --ink: #1f2328; --muted: #646b73; --line: #e2e0da;
+  --accent: #2f6f8f; --covered: #3f8f5f; --progress: #c9962e; --todo: #d9d6ce;
+  --chip: #eef2f4; --warn: #b5523b;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #16181b; --panel: #1f2226; --ink: #e6e6e3; --muted: #9aa1a8; --line: #33373c;
+    --accent: #6fb0cf; --covered: #5fb07f; --progress: #d9ac4e; --todo: #3b3f45; --chip: #2a2f35; --warn: #e07c63; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+header { padding: 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+header h1 { margin: 0; font-size: 20px; }
+header .meta { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+nav { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 12px; }
+nav button, .btn { border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+  border-radius: 6px; padding: 5px 12px; font: inherit; cursor: pointer; }
+nav button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+main { padding: 16px; max-width: 1100px; margin: 0 auto; }
+.note { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+.grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
+.card h3 { margin: 0 0 4px; font-size: 16px; }
+.card .sub { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+.bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: var(--todo); margin: 6px 0; }
+.bar span { display: block; height: 100%; }
+.kv { display: flex; justify-content: space-between; font-size: 14px; padding: 2px 0; }
+.kv b { font-weight: 600; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.chip { background: var(--chip); border-radius: 10px; padding: 1px 8px; font-size: 12px; }
+.chip.current { background: var(--accent); color: #fff; }
+.hbar { display: grid; grid-template-columns: 190px 1fr 32px; align-items: center; gap: 8px; font-size: 13px; }
+.hbar .fill { height: 8px; background: var(--accent); border-radius: 4px; }
+.weeks { display: flex; align-items: flex-end; gap: 4px; height: 90px; border-bottom: 1px solid var(--line); }
+.weeks div { flex: 1; background: var(--accent); border-radius: 3px 3px 0 0; min-height: 1px; position: relative; }
+.weeks div[data-n="0"] { background: var(--todo); }
+.weeklabels { display: flex; gap: 4px; font-size: 10px; color: var(--muted); }
+.weeklabels span { flex: 1; text-align: center; overflow: hidden; }
+h2 { font-size: 17px; margin: 22px 0 8px; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; background: var(--panel); font-size: 14px; }
+th, td { border: 1px solid var(--line); padding: 5px 8px; text-align: left; vertical-align: top; }
+th { background: var(--chip); font-weight: 600; }
+a, .link { color: var(--accent); cursor: pointer; text-decoration: underline; }
+select, input { font: inherit; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--panel); color: var(--ink); }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+.empty { color: var(--muted); font-style: italic; }
+.warn { color: var(--warn); }
+#reader { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; padding: 16px; }
+#reader.open { display: block; }
+#reader .box { background: var(--panel); border-radius: 8px; max-width: 900px; height: 100%; margin: 0 auto;
+  display: flex; flex-direction: column; }
+#reader .top { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px;
+  border-bottom: 1px solid var(--line); gap: 8px; }
+#reader .top b { overflow-wrap: anywhere; font-size: 14px; }
+#reader .doc { overflow: auto; padding: 4px 18px 24px; }
+.doc blockquote { border-left: 3px solid var(--line); margin: 8px 0; padding: 2px 12px; color: var(--muted); }
+.doc pre { background: var(--chip); padding: 10px; overflow-x: auto; border-radius: 6px; }
+.doc code { background: var(--chip); padding: 0 3px; border-radius: 3px; }
+@media (max-width: 600px) { .hbar { grid-template-columns: 150px 1fr 28px; } main { padding: 12px 16px; } }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">Learning progress</h1>
+  <div class="meta" id="meta">Loading…</div>
+  <nav id="tabs"></nav>
+</header>
+<main id="view"></main>
+<div id="reader"><div class="box">
+  <div class="top"><b id="readerTitle"></b><button class="btn" onclick="closeReader()">Close</button></div>
+  <div class="doc" id="readerDoc"></div>
+</div></div>
+<script>
+const TABS = ["Overview", "Tracks", "Queues", "Teacher", "History"];
+const EVIDENCE = ["independent", "cued", "corrected and repeated", "repeated", "modelled", "needs another turn"];
+let data = null, tab = "Overview", trackId = null, filter = "";
+{ const [t, id] = decodeURIComponent(location.hash.slice(1)).split("/"); if (TABS.includes(t)) tab = t; if (id) trackId = id; }
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const inline = s => esc(s)
+  .replace(/`([^`]+)`/g, "<code>$1</code>")
+  .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+  .replace(/\*([^*\s][^*]*)\*/g, "<i>$1</i>")
+  .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+function markdown(text) {
+  const out = [], lines = text.replace(/\r/g, "").split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line.startsWith("```")) {
+      const code = [];
+      while (++i < lines.length && !lines[i].startsWith("```")) code.push(lines[i]);
+      out.push(`<pre>${esc(code.join("\n"))}</pre>`);
+    } else if (/^#{1,6} /.test(line)) {
+      const n = line.match(/^#+/)[0].length;
+      out.push(`<h${n}>${inline(line.slice(n + 1))}</h${n}>`);
+    } else if (line.trim().startsWith("|")) {
+      const rows = [];
+      while (i < lines.length && lines[i].trim().startsWith("|")) rows.push(lines[i++]);
+      i--;
+      const cells = r => r.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim());
+      const body = rows.slice(2).map(r => `<tr>${cells(r).map(c => `<td>${inline(c)}</td>`).join("")}</tr>`);
+      out.push(`<div class="scroll"><table><tr>${cells(rows[0]).map(c => `<th>${inline(c)}</th>`).join("")}</tr>${body.join("")}</table></div>`);
+    } else if (/^\s*([-*]|\d+\.) /.test(line)) {
+      const ordered = /^\s*\d+\. /.test(line), items = [];
+      while (i < lines.length && /^\s*([-*]|\d+\.) /.test(lines[i])) items.push(lines[i++].replace(/^\s*([-*]|\d+\.) /, ""));
+      i--;
+      const tag = ordered ? "ol" : "ul";
+      out.push(`<${tag}>${items.map(x => `<li>${inline(x)}</li>`).join("")}</${tag}>`);
+    } else if (line.startsWith(">")) {
+      const quote = [];
+      while (i < lines.length && lines[i].startsWith(">")) quote.push(lines[i++].replace(/^>\s?/, ""));
+      i--;
+      out.push(`<blockquote>${inline(quote.join(" "))}</blockquote>`);
+    } else if (/^---+\s*$/.test(line)) {
+      out.push("<hr>");
+    } else if (line.trim()) {
+      const para = [line];
+      while (i + 1 < lines.length && lines[i + 1].trim() && !/^(#|\||>|```|\s*([-*]|\d+\.) |---)/.test(lines[i + 1])) para.push(lines[++i]);
+      out.push(`<p>${inline(para.join(" "))}</p>`);
+    }
+  }
+  return out.join("\n");
+}
+
+async function openFile(path) {
+  const response = await fetch(`/api/file?path=${encodeURIComponent(path)}`);
+  const text = await response.text();
+  document.getElementById("readerTitle").textContent = path;
+  document.getElementById("readerDoc").innerHTML = response.ok
+    ? (path.endsWith(".md") ? markdown(text) : `<pre>${esc(text)}</pre>`)
+    : `<p class="warn">${esc(text)}</p>`;
+  document.getElementById("reader").classList.add("open");
+}
+function closeReader() { document.getElementById("reader").classList.remove("open"); }
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeReader(); });
+document.getElementById("reader").addEventListener("click", e => { if (e.target.id === "reader") closeReader(); });
+
+function fileLink(path, label) { return `<span class="link" onclick='openFile(${JSON.stringify(path)})'>${esc(label || path)}</span>`; }
+
+function tableHtml(rows, columns) {
+  if (!rows.length) return '<p class="empty">Nothing recorded yet.</p>';
+  columns = columns || Object.keys(rows[0]);
+  return `<div class="scroll"><table><tr>${columns.map(c => `<th>${esc(c)}</th>`).join("")}</tr>${
+    rows.map(r => `<tr>${columns.map(c => `<td>${inline(r[c] ?? "")}</td>`).join("")}</tr>`).join("")}</table></div>`;
+}
+
+function weekKey(date) {
+  const d = new Date(date + "T00:00:00Z"), day = (d.getUTCDay() + 6) % 7;
+  d.setUTCDate(d.getUTCDate() - day);
+  return d.toISOString().slice(0, 10);
+}
+
+function activity(lessons) {
+  const weeks = [], now = new Date();
+  for (let w = 11; w >= 0; w--) {
+    const d = new Date(now); d.setUTCDate(d.getUTCDate() - 7 * w);
+    weeks.push(weekKey(d.toISOString().slice(0, 10)));
+  }
+  const counts = Object.fromEntries(weeks.map(w => [w, 0]));
+  lessons.filter(l => l.recorded).forEach(l => { const k = weekKey(l.date); if (k in counts) counts[k]++; });
+  const max = Math.max(1, ...Object.values(counts));
+  return `<div class="weeks">${weeks.map(w => `<div data-n="${counts[w]}" title="week of ${w}: ${counts[w]} recorded lesson(s)" style="height:${Math.max(2, 100 * counts[w] / max)}%"></div>`).join("")}</div>
+    <div class="weeklabels">${weeks.map((w, i) => `<span>${i % 3 === 0 ? w.slice(5) : ""}</span>`).join("")}</div>`;
+}
+
+function evidenceBars(counts) {
+  const max = Math.max(1, ...Object.values(counts));
+  return EVIDENCE.map(k => `<div class="hbar"><span>${esc(k)}</span><div><div class="fill" style="width:${100 * (counts[k] || 0) / max}%"></div></div><span>${counts[k] || 0}</span></div>`).join("");
+}
+
+function trackCard(t) {
+  const recorded = t.lessons.filter(l => l.recorded), n = Math.max(t.session_count, 1);
+  const modes = {};
+  recorded.forEach(l => { const k = l.mode + (l.channel === "text" && l.mode !== "writing" ? " (text)" : ""); modes[k] = (modes[k] || 0) + 1; });
+  const last = recorded.length ? recorded[recorded.length - 1].date : "—";
+  return `<div class="card">
+    <h3>${esc(t.title)} ${t.id === data.current ? '<span class="chip current">current</span>' : ""}</h3>
+    <div class="sub">${esc(t.id)}${t.language ? " · " + esc(t.language) : ""}${t.installed ? "" : ' · <span class="warn">not installed</span>'}</div>
+    <div class="kv"><span>Sessions covered</span><b>${t.covered} of ${t.session_count}</b></div>
+    <div class="bar" title="covered / in progress / not started">
+      <span style="width:${100 * t.covered / n}%;background:var(--covered)"></span>
+      <span style="width:${100 * t.in_progress / n}%;background:var(--progress)"></span></div>
+    <div class="kv"><span>Lessons recorded</span><b>${recorded.length}</b></div>
+    <div class="kv"><span>Prepared, not yet recorded</span><b>${t.lessons.length - recorded.length}</b></div>
+    <div class="kv"><span>Last lesson</span><b>${esc(last)}</b></div>
+    <div class="chips">${Object.entries(modes).map(([m, c]) => `<span class="chip">${esc(m)} ×${c}</span>`).join("")}</div>
+    <p><span class="link" onclick='showTrack(${JSON.stringify(t.id)})'>Open track</span></p>
+  </div>`;
+}
+
+function overview() {
+  if (!data.tracks.length) return `<p class="empty">No track started yet. Run <code>lal start &lt;track&gt;</code> (see <code>lal track list</code>).</p>`;
+  const all = data.tracks.flatMap(t => t.lessons);
+  const queues = Object.entries(data.queues);
+  return `<p class="note">Coverage and evidence describe exposure seen in the transcripts, not mastery. Nothing here is a score.</p>
+    <div class="grid">${data.tracks.map(trackCard).join("")}</div>
+    <h2>Recorded lessons per week</h2><div class="card">${activity(all)}</div>
+    <h2>Review queues</h2>
+    ${queues.length ? `<div class="grid">${queues.map(([lang, q]) => `<div class="card"><h3>${esc(lang)}</h3>
+      ${Object.entries(q.statuses).map(([s, c]) => `<div class="kv"><span>${esc(s)}</span><b>${c}</b></div>`).join("") || '<p class="empty">No targets yet.</p>'}
+      <p>${fileLink(q.file, "Open queue")}</p></div>`).join("")}</div>` : '<p class="empty">No queues yet.</p>'}`;
+}
+
+function showTrack(id) { trackId = id; tab = "Tracks"; render(); }
+
+function tracksView() {
+  if (!data.tracks.length) return overview();
+  const t = data.tracks.find(x => x.id === trackId) || data.tracks.find(x => x.id === data.current) || data.tracks[0];
+  trackId = t.id;
+  const f = filter.toLowerCase(), match = r => !f || Object.values(r).join(" ").toLowerCase().includes(f);
+  return `<div class="toolbar">
+      <select onchange="trackId=this.value;render()">${data.tracks.map(x => `<option value="${esc(x.id)}" ${x.id === t.id ? "selected" : ""}>${esc(x.title)}</option>`).join("")}</select>
+      ${fileLink(t.tracker_file, "Open TRACKER.md")}
+      <input placeholder="Filter words and sentences" value="${esc(filter)}" oninput="filter=this.value;render();this.focus();this.setSelectionRange(this.value.length,this.value.length)">
+    </div>
+    <p class="note">Last updated: ${esc(t.tracker.updated || "—")}</p>
+    <h2>Sessions</h2>${tableHtml(t.tracker.sessions)}
+    <h2>Lessons</h2>
+    ${t.lessons.length ? `<div class="scroll"><table><tr><th>Date</th><th>Session</th><th>Mode</th><th>Channel</th><th>State</th><th>Files</th></tr>${
+      t.lessons.slice().reverse().map(l => `<tr><td>${esc(l.date)}</td><td>${l.session}${esc(l.part)}</td><td>${esc(l.mode)}</td><td>${esc(l.channel)}</td>
+        <td>${l.recorded ? "recorded" : '<span class="warn">prepared</span>'}${l.report ? ' <span class="chip">report</span>' : ""}</td>
+        <td>${l.files.map(p => fileLink(p, p.split("/").pop())).join(" · ")}</td></tr>`).join("")}</table></div>` : '<p class="empty">No lessons yet.</p>'}
+    <h2>Evidence in the tracker</h2><div class="card">${evidenceBars(t.tracker.evidence)}</div>
+    <h2>Vocabulary encountered</h2>${tableHtml(t.tracker.vocabulary.filter(match))}
+    <h2>Sentence practice</h2>${tableHtml(t.tracker.sentences.filter(match))}
+    <h2>Practice history</h2>${tableHtml(t.tracker.history.slice().reverse().map(h => ({Date: h.date, Lesson: h.title, Mode: h.mode})))}`;
+}
+
+function queuesView() {
+  const queues = Object.entries(data.queues);
+  if (!queues.length) return '<p class="empty">No queues yet.</p>';
+  return queues.map(([lang, q]) => `<h2>${esc(lang)} · ${fileLink(q.file, "open")}</h2>
+    ${tableHtml(q.targets)}<h2>Repetition history (${esc(lang)})</h2>${tableHtml(q.history)}`).join("");
+}
+
+function teacherView() {
+  const runs = data.teacher.runs, failed = data.teacher.failed, versions = Object.keys(failed);
+  const checks = [...new Set(versions.flatMap(v => Object.keys(failed[v])))].sort((a, b) => +a.slice(1) - +b.slice(1));
+  const perVersion = {};
+  runs.forEach(r => { perVersion[r.Prompt || "?"] = (perVersion[r.Prompt || "?"] || 0) + 1; });
+  return `<p class="note">How the ChatGPT teacher followed the prompt (checklist in prompt/ITERATIONS.md). Teacher behaviour only.</p>
+    <h2>Failed checks per prompt version</h2>
+    ${checks.length ? `<div class="scroll"><table><tr><th>Prompt</th><th>Runs</th>${checks.map(c => `<th>${esc(c)}</th>`).join("")}</tr>${
+      Object.keys(perVersion).map(v => `<tr><td>${esc(v)}</td><td>${perVersion[v]}</td>${checks.map(c => `<td>${(failed[v] || {})[c] || ""}</td>`).join("")}</tr>`).join("")}</table></div>`
+      : '<p class="empty">No failed checks recorded.</p>'}
+    <h2>Runs</h2>${tableHtml(runs.slice().reverse())}`;
+}
+
+function historyView() {
+  const g = data.git;
+  if (!g) return `<p class="empty">${esc(data.root)} is a plain directory, not a git repository: no history to show.</p>`;
+  const sync = g.ahead === null ? "no upstream" : `${g.ahead} ahead, ${g.behind} behind`;
+  return `<div class="card"><div class="kv"><span>Branch</span><b>${esc(g.branch)}</b></div>
+      <div class="kv"><span>Remote</span><b>${esc(g.remote || "none")}</b></div>
+      <div class="kv"><span>Sync</span><b>${esc(sync)}</b></div>
+      <div class="kv"><span>Uncommitted changes</span><b class="${g.uncommitted ? "warn" : ""}">${g.uncommitted}</b></div>
+      ${data.pullable ? '<p><button class="btn" onclick="pull()">Pull latest</button> <span id="pullout" class="note"></span></p>' : ""}</div>
+    <h2>Commits</h2>${tableHtml(g.log.map(c => ({Date: c.date, Commit: c.hash, Message: c.subject})))}`;
+}
+
+async function pull() {
+  const r = await (await fetch("/api/pull")).json();
+  document.getElementById("pullout").textContent = r.output || (r.ok ? "Up to date." : "Pull failed.");
+  await load();
+}
+
+function render() {
+  document.getElementById("tabs").innerHTML = TABS.map(t => `<button class="${t === tab ? "on" : ""}" onclick="tab='${t}';render()">${t}</button>`).join("")
+    + '<button onclick="load()" title="Re-read the learner data">Refresh</button>';
+  history.replaceState(null, "", "#" + tab + (tab === "Tracks" && trackId ? "/" + trackId : ""));
+  const views = { Overview: overview, Tracks: tracksView, Queues: queuesView, Teacher: teacherView, History: historyView };
+  document.getElementById("view").innerHTML = data ? views[tab]() : "";
+}
+
+async function load() {
+  try {
+    const response = await fetch("/api/progress");
+    data = await response.json();
+    if (!response.ok) throw new Error(data.error);
+    const who = data.learner.name ? `${data.learner.name} · ` : "";
+    document.getElementById("title").textContent = `${who}Learning progress`;
+    const g = data.git;
+    document.getElementById("meta").textContent = `${data.root}${g ? ` · git ${g.branch}${g.uncommitted ? `, ${g.uncommitted} uncommitted` : ""}` : " · directory"} · current track: ${data.current || "none"}`;
+  } catch (e) {
+    data = null;
+    document.getElementById("meta").innerHTML = `<span class="warn">Could not read the learner data: ${esc(e.message)}</span>`;
+  }
+  render();
+}
+load();
+</script>
+</body>
+</html>

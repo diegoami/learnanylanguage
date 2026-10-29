@@ -4,7 +4,7 @@
 # home = "~/.local/share/learnanylanguage"
 
 # Learner data: profile, trackers, transcripts, queues. A private git
-# repository is a good place for it.
+# repository is a good place for it (see docs/backends.md); `lal gui` reads it.
 # data_dir = "~/projects/my-language-learning"
 
 # Extra track folders, searched before installed tracks (for writing tracks).

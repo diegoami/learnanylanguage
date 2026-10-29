@@ -9,7 +9,7 @@ import re
 import sys
 from pathlib import Path
 
-from . import __version__, checks, config, languages, learner, lesson, registry, report, share, tracks
+from . import __version__, checks, config, gui, languages, learner, lesson, registry, report, share, tracks
 
 
 def fail(message: str) -> int:
@@ -241,6 +241,11 @@ def cmd_report(cfg, args):
     return 1 if errors else 0
 
 
+def cmd_gui(cfg, args):
+    gui.serve(cfg, args.data, args.port, not args.no_browser, args.pull)
+    return 0
+
+
 def cmd_share(cfg, args):
     if not (args.url or args.html):
         return fail("give a share URL or --html")
@@ -331,6 +336,14 @@ def parser() -> argparse.ArgumentParser:
     rp = sub.add_parser("report", help="check and tabulate the LESSON_REPORT in a transcript")
     rp.add_argument("path", type=Path)
     rp.set_defaults(fn=cmd_report)
+
+    gu = sub.add_parser("gui", help="read and evaluate progress in a local web page")
+    gu.add_argument("--data", metavar="DIR|GIT_URL",
+                    help="learner data to read: a directory or a git URL (default: data_dir)")
+    gu.add_argument("--port", type=int, default=8770, help="port on 127.0.0.1 (0 = any free port)")
+    gu.add_argument("--no-browser", action="store_true", help="only print the address")
+    gu.add_argument("--pull", action="store_true", help="git pull --ff-only before reading, and allow it from the page")
+    gu.set_defaults(fn=cmd_gui)
 
     sh = sub.add_parser("share", help="read a ChatGPT share link as a transcript")
     sh.add_argument("url", nargs="?")

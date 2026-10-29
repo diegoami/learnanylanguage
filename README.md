@@ -93,6 +93,7 @@ Switch language or track at any time: `lal start uk-reactivation`,
 | `lal prompt --mode M [--channel C] [--track ID]` | show the rendered teacher controller |
 | `lal share URL` | read a ChatGPT share link as a transcript |
 | `lal report FILE` | check a LESSON_REPORT and print it with evidence labels |
+| `lal gui [--data DIR\|GIT_URL]` | read and evaluate progress in a local web page |
 
 Configuration: `lal.toml` (see [lal.example.toml](lal.example.toml)) or
 `LAL_HOME`, `LAL_DATA`, `LAL_TRACK_PATH`, `LAL_CONFIG`.
@@ -118,6 +119,16 @@ queues/<lang>.md                  shared by every track of a language
 tracks/<id>/TRACKER.md
 tracks/<id>/sessions/<date>-session-<N><part>-<mode>/{package,transcript}.md
 ```
+
+## Reading your progress
+
+`lal gui` opens a local, read-only page over the learner data: sessions
+covered per track, recorded lessons per week, evidence labels, review-queue
+status, the teacher's failed checks per prompt version, and the git history;
+any tracker, package or transcript opens in a reader. `--data` reads another
+directory or a git URL (cloned once, pulled with `--pull`). The learner data
+also opens as an Obsidian vault. Why a folder in a private git repository,
+and not Notion or a database: [docs/backends.md](docs/backends.md).
 
 ## Publishing tracks
 

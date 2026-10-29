@@ -14,7 +14,7 @@ This repository is model-agnostic: it is maintained with any coding agent.
 
 | Layer | Where | What |
 | --- | --- | --- |
-| Engine | `src/lal/` (CLI `lal`) | controller template, package builder and checker, track registry, language profiles and checks |
+| Engine | `src/lal/` (CLI `lal`) | controller template, package builder and checker, track registry, language profiles and checks, the read-only progress page (`lal gui`) |
 | Tracks | `tracks/<id>/` here (source); installed copies in the tracks folder | data-only lesson content for one language: `track.toml`, `OPENINGS.md`, `MATERIAL.md`, `PLAN.md`, `TRACKER.md`, `README.md` |
 | Learner data | `$LAL_DATA` / `data_dir` (`lal paths`) | profile, per-track trackers and lesson folders, per-language review queues, teacher runs |
 

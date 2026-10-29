@@ -9,7 +9,8 @@ Resolution order for the config file: $LAL_CONFIG, ./lal.toml,
     track_path = ["tracks"]                    # extra track folders, searched first (development)
     sources = ["diegoami/learnanylanguage"]    # GitHub repos (or index URLs) that publish tracks
 
-Relative paths in the file are relative to the file's directory.
+Relative paths in the file are relative to the file's directory; relative
+paths in the environment variables are relative to the working directory.
 """
 
 from __future__ import annotations
@@ -49,17 +50,23 @@ def load() -> Config:
     raw = tomllib.loads(file.read_text(encoding="utf-8")) if file else {}
     base = file.parent if file else Path.cwd()
 
-    def path(value: str | None, default: Path) -> Path:
+    def path(value: str | None, default: Path, relative_to: Path = base) -> Path:
         if not value:
             return default
         p = Path(value).expanduser()
-        return p if p.is_absolute() else (base / p).resolve()
+        return p if p.is_absolute() else (relative_to / p).resolve()
 
-    home = path(os.environ.get("LAL_HOME") or raw.get("home"),
-                Path.home() / ".local" / "share" / "learnanylanguage")
-    data_dir = path(os.environ.get("LAL_DATA") or raw.get("data_dir"), home / "learner")
+    def setting(env: str, key: str, default: Path) -> Path:
+        """An environment variable (relative to the working directory) wins over the file."""
+        if os.environ.get(env):
+            return path(os.environ[env], default, Path.cwd())
+        return path(raw.get(key), default)
+
+    home = setting("LAL_HOME", "home", Path.home() / ".local" / "share" / "learnanylanguage")
+    data_dir = setting("LAL_DATA", "data_dir", home / "learner")
     tracks_dir = path(raw.get("tracks_dir"), home / "tracks")
     env_path = [p for p in os.environ.get("LAL_TRACK_PATH", "").split(os.pathsep) if p]
-    track_path = [path(p, Path(p)) for p in env_path + list(raw.get("track_path", []))]
+    track_path = ([path(p, Path(p), Path.cwd()) for p in env_path]
+                  + [path(p, Path(p)) for p in raw.get("track_path", [])])
     sources = list(raw.get("sources") or [DEFAULT_SOURCE])
     return Config(home, data_dir, tracks_dir, track_path, sources, file)

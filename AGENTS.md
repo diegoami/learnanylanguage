@@ -102,7 +102,11 @@ Claude Code exposes them as `/lesson-prepare`, `/lesson-record`,
   free modes to learnukrainian's g2.
 - Python ≥ 3.12, standard library only at runtime; `uv` for the environment.
 
-## Git
+## Git and reviews
 
 Engine and track changes: commit on `main` unless the owner asks for a
 branch. Learner data has its own repository, if any.
+
+No automatic reviews: never start a reviewer on your own. Reviews happen
+only at milestones, through a milestone PR that the owner has a model of
+their choice review: [docs/milestone-review.md](docs/milestone-review.md).

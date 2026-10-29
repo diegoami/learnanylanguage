@@ -262,6 +262,12 @@ async function openFile(path) {
   $("viewer").hidden = false;
 }
 
+async function openInEditor(path) {
+  const response = await fetch("/api/open", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path }) });
+  const data = await response.json();
+  if (!response.ok) showError(data.error); else setStatus(`Opened ${path} with ${data.opened[0]}.`);
+}
+
 async function savePasted() {
   const text = $("pastedChat").value.trim();
   if (!text) return;
@@ -333,6 +339,8 @@ function init() {
   $("pastedBtn").addEventListener("click", savePasted);
   $("companionRefresh").addEventListener("click", loadCompanion);
   $("viewerClose").addEventListener("click", () => { $("viewer").hidden = true; });
+  $("viewerEdit").addEventListener("click", () => openInEditor($("viewerTitle").textContent));
+  $("companionEdit").addEventListener("click", () => openInEditor("COMPANION.md"));
   document.addEventListener("click", e => {
     const a = e.target.closest("a[data-file]");
     if (a) { e.preventDefault(); openFile(a.dataset.file); }

@@ -19,13 +19,13 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from . import progress
+from . import opener, progress
 from .config import Config
 
 PAGE = Path(__file__).resolve().parent / "gui" / "index.html"
 
 
-def handler(cfg: Config, root: Path, pullable: bool) -> type[BaseHTTPRequestHandler]:
+def handler(cfg: Config, root: Path, pullable: bool, origin: str = "") -> type[BaseHTTPRequestHandler]:
     class Handler(BaseHTTPRequestHandler):
         def send(self, status: int, body: bytes, kind: str) -> None:
             self.send_response(status)
@@ -61,6 +61,23 @@ def handler(cfg: Config, root: Path, pullable: bool) -> type[BaseHTTPRequestHand
             except (OSError, ValueError) as error:
                 self.json({"error": str(error)}, 500)
 
+        def do_POST(self) -> None:  # noqa: N802
+            """Open a learner-data file in the configured editor; only from this page."""
+            if (not origin or self.headers.get("Origin") != origin
+                    or "application/json" not in self.headers.get("Content-Type", "")):
+                self.json({"error": "only this page may ask"}, 403)
+                return
+            try:
+                data = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}")
+                if urllib.parse.urlparse(self.path).path != "/api/open":
+                    self.json({"error": "not found"}, 404)
+                    return
+                self.json({"opened": opener.open_file(cfg, progress.inside(root, str(data.get("path", ""))))})
+            except PermissionError as error:
+                self.json({"error": str(error)}, 403)
+            except (OSError, ValueError, RuntimeError) as error:
+                self.json({"error": str(error)}, 400)
+
         def log_message(self, *args) -> None:  # keep the terminal quiet
             pass
 
@@ -74,6 +91,7 @@ def serve(cfg: Config, source: str | None, port: int = 8770, open_browser: bool 
     pullable = bool(source and progress.is_url(source)) or pull
     server = ThreadingHTTPServer(("127.0.0.1", port), handler(cfg, root, pullable))
     url = f"http://127.0.0.1:{server.server_address[1]}/"
+    server.RequestHandlerClass = handler(cfg, root, pullable, url.rstrip("/"))
     print(f"Reading {root}\nOpen {url} (Ctrl+C to stop)")
     if open_browser:
         threading.Timer(0.5, webbrowser.open, (url,)).start()

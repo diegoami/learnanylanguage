@@ -9,7 +9,7 @@ import re
 import sys
 from pathlib import Path
 
-from . import __version__, checks, companion, config, gui, languages, learner, lesson, registry, report, share, tracks, web
+from . import __version__, checks, companion, config, gui, languages, learner, lesson, opener, registry, report, share, tracks, web
 
 
 def fail(message: str) -> int:
@@ -254,6 +254,31 @@ def cmd_companion(cfg, args):
     return 0
 
 
+def cmd_open(cfg, args):
+    target = args.target
+    current = learner.current(cfg)
+    if target == "companion":
+        path = cfg.data_dir / companion.FILE
+        if not path.is_file():
+            companion.write(cfg)
+    elif target == "tracker":
+        if not current:
+            return fail("no current track: lal start ID")
+        path = learner.track_dir(cfg, current) / "TRACKER.md"
+    elif target == "queue":
+        if not current:
+            return fail("no current track: lal start ID")
+        path = learner.queue_path(cfg, tracks.find(cfg, current).language_code)
+    elif target == "profile":
+        path = cfg.data_dir / "profile.toml"
+    elif target == "data":
+        path = cfg.data_dir
+    else:
+        path = Path(target).expanduser()
+    print("Opened with: " + " ".join(opener.open_file(cfg, path.resolve())))
+    return 0
+
+
 def cmd_web(cfg, args):
     web.serve(cfg, args.port, not args.no_browser)
     return 0
@@ -361,6 +386,11 @@ def parser() -> argparse.ArgumentParser:
     co = sub.add_parser("companion", help="write COMPANION.md: what was covered and what comes next")
     co.add_argument("--stdout", action="store_true", help="print instead of writing the file")
     co.set_defaults(fn=cmd_companion)
+
+    op = sub.add_parser("open", help="open a file in your editor (editor = \"code\" in lal.toml)")
+    op.add_argument("target", nargs="?", default="companion",
+                    help="companion (default), tracker, queue, profile, data, or a file path")
+    op.set_defaults(fn=cmd_open)
 
     we = sub.add_parser("web", help="run lessons in a local page: ChatGPT hand-off, or your own keys")
     we.add_argument("--port", type=int, default=8772, help="port on 127.0.0.1 (0 = any free port)")

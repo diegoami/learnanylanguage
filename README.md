@@ -97,6 +97,7 @@ Switch language or track at any time: `lal start uk-reactivation`,
 | `lal gui [--data DIR\|GIT_URL]` | read and evaluate progress in a local web page |
 | `lal web` | run lessons in a local page: hand-off to ChatGPT, or your own keys |
 | `lal companion` | write `COMPANION.md`: what was covered, each lesson's transcript, what comes next |
+| `lal open [companion\|tracker\|queue\|profile\|data\|FILE]` | open it in your editor (`editor = "code"` in `lal.toml`) |
 
 Configuration: `lal.toml` (see [lal.example.toml](lal.example.toml)) or
 `LAL_HOME`, `LAL_DATA`, `LAL_TRACK_PATH`, `LAL_CONFIG`.
@@ -153,6 +154,11 @@ not depend on the route a lesson took; the prepare and record workflows
 and `lal web` regenerate it, and `lal web` shows it in its Companion tab.
 Every lesson keeps its full transcript in its folder: a ChatGPT share link,
 a pasted conversation, or the page's own record.
+
+Neither page edits files: their viewers have **Open in editor**, which
+starts the application set as `editor` in `lal.toml` (for example `editor =
+"code"` for VS Code; `$LAL_EDITOR` works too), or the system's opener when
+none is set. `lal open companion` does the same from the terminal.
 
 Sessions can carry a `focus` (phonetics, vocabulary, grammar, conversation,
 writing) that suggests their modes; see [docs/TRACK_FORMAT.md](docs/TRACK_FORMAT.md).

@@ -7,6 +7,11 @@
 # repository is a good place for it (see docs/backends.md); `lal gui` reads it.
 # data_dir = "~/projects/my-language-learning"
 
+# The application that opens Markdown files (`lal open`, "Open in editor" in
+# lal web and lal gui): any command, the file is appended. Also $LAL_EDITOR.
+# Without it, the system opener is used (wslview, xdg-open, open).
+# editor = "code"
+
 # Extra track folders, searched before installed tracks (for writing tracks).
 # track_path = ["tracks"]
 

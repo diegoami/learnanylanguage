@@ -93,3 +93,13 @@ def test_saving_a_transcript_rewrites_the_companion(site):
                                       "body": "**Learner** (text): Zaczynamy"}, origin)
     companion_file = folder.parents[3] / "COMPANION.md"
     assert f"sessions/{folder.name}/transcript.md" in companion_file.read_text(encoding="utf-8")
+
+
+def test_the_lesson_page_opens_learner_files_in_the_editor(site, monkeypatch):
+    origin, folder = site
+    calls = []
+    monkeypatch.setattr(web.opener.subprocess, "Popen", lambda cmd, **kw: calls.append(cmd))
+    monkeypatch.setattr(web.opener, "command", lambda cfg: ["code"])
+    result = post(origin + "/api/open", {"path": f"tracks/pl-first-steps/sessions/{folder.name}/package.md"}, origin)
+    assert result["opened"][0] == "code" and calls[0][-1].endswith("package.md")
+    assert status(lambda: post(origin + "/api/open", {"path": "../x.md"}, origin)) == 403

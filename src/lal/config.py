@@ -8,6 +8,7 @@ Resolution order for the config file: $LAL_CONFIG, ./lal.toml,
     tracks_dir = "<home>/tracks"               # where `lal track install` puts tracks
     track_path = ["tracks"]                    # extra track folders, searched first (development)
     sources = ["diegoami/learnanylanguage"]    # GitHub repos (or index URLs) that publish tracks
+    editor = "code"                            # also $LAL_EDITOR: opens Markdown files (lal open, the pages)
 
 Relative paths in the file are relative to the file's directory; relative
 paths in the environment variables are relative to the working directory.
@@ -31,6 +32,7 @@ class Config:
     track_path: list[Path] = field(default_factory=list)
     sources: list[str] = field(default_factory=lambda: [DEFAULT_SOURCE])
     file: Path | None = None
+    editor: str = ""
 
 
 def _config_file() -> Path | None:
@@ -69,4 +71,5 @@ def load() -> Config:
     track_path = ([path(p, Path(p), Path.cwd()) for p in env_path]
                   + [path(p, Path(p)) for p in raw.get("track_path", [])])
     sources = list(raw.get("sources") or [DEFAULT_SOURCE])
-    return Config(home, data_dir, tracks_dir, track_path, sources, file)
+    editor = os.environ.get("LAL_EDITOR") or str(raw.get("editor", ""))
+    return Config(home, data_dir, tracks_dir, track_path, sources, file, editor)

@@ -240,9 +240,13 @@ def load(cfg: Config, root: Path) -> dict:
     }
 
 
-def read_file(root: Path, relative: str) -> str:
-    """A readable file inside the learner data; refuses anything outside it."""
+def inside(root: Path, relative: str) -> Path:
+    """A Markdown, TOML or text file inside the learner data; refuses anything outside it."""
     path = (root / relative).resolve()
     if root.resolve() not in path.parents or path.suffix not in READABLE or not path.is_file():
         raise PermissionError(f"not a readable learner-data file: {relative}")
-    return path.read_text(encoding="utf-8")
+    return path
+
+
+def read_file(root: Path, relative: str) -> str:
+    return inside(root, relative).read_text(encoding="utf-8")

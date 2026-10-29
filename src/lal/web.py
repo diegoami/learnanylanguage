@@ -27,7 +27,7 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from . import __version__, companion, learner, progress, share
+from . import __version__, companion, learner, opener, progress, share
 from .config import Config
 
 STATIC = Path(__file__).resolve().parent / "web"
@@ -144,6 +144,8 @@ def handler(cfg: Config, origin: str) -> type[BaseHTTPRequestHandler]:
                     write_transcript(path, str(data.get("body", "")), str(data.get("model", "")))
                     companion.write(cfg)
                     self.json({"saved": str(path.relative_to(cfg.data_dir) / "transcript.md")})
+                elif url == "/api/open":
+                    self.json({"opened": opener.open_file(cfg, progress.inside(cfg.data_dir, str(data.get("path", ""))))})
                 elif url == "/api/share":
                     link = str(data.get("url", ""))
                     if not re.match(r"^https://(chatgpt\.com|chat\.openai\.com)/share/[\w-]+$", link):
@@ -159,7 +161,8 @@ def handler(cfg: Config, origin: str) -> type[BaseHTTPRequestHandler]:
                     self.json({"transcript": text, "saved": saved})
                 else:
                     self.json({"error": "not found"}, 404)
-            except (PermissionError, FileNotFoundError, FileExistsError, OSError, ValueError, KeyError) as error:
+            except (PermissionError, FileNotFoundError, FileExistsError, OSError, ValueError, KeyError,
+                    RuntimeError) as error:
                 self.fail(error)
 
         def log_message(self, *args) -> None:

@@ -1,7 +1,7 @@
 # Track format
 
 A track is a folder of Markdown and TOML that teaches one language through
-short one-mode voice lessons. It carries no code: only `.md`, `.toml`,
+short one-mode lessons, in voice or typed. It carries no code: only `.md`, `.toml`,
 `.json` and `.txt` files are accepted, and symbolic links are refused.
 
 ```
@@ -64,9 +64,16 @@ into packages verbatim and `lal lesson check` refuses altered copies.
 
 `MATERIAL.md` needs a `# Session N — Title` section per session (dialogues
 with translations, patterns, a "You should be able to" list work well).
-`PLAN.md` says, per session, what each part (A, B, …) practises and when the
-session counts as **Covered** (its topic areas have appeared in transcripts
-of any mode; not mastery).
+Optional subsections feed the experimental modes, and the agent fills those
+packages from them: `## Grammar — <pattern>` (a short explanation, a table of
+forms, and **Drill ideas** as `cue → answer` examples), `## Vocabulary`
+(`- word — meaning` lines), and `## Writing` (a task with a sentence count
+and a follow-up). Without them the agent works from the dialogues and
+patterns. `sv-everyday`, `pl-first-steps`, `ja-first-steps` and
+`uk-advanced` show the shape.
+`PLAN.md` says, per session, what each part (A, B, …) practises, optionally
+which **Drills** suit it, and when the session counts as **Covered** (its
+topic areas have appeared in transcripts of any mode; not mastery).
 
 ## Language profiles
 
@@ -90,7 +97,9 @@ listen_repeat = "Ascolti e ripeta."
 now_you = "Ora provi lei."
 correction = "Correzione:"
 interference = ""     # e.g. "a Russian word" for Ukrainian
-stress_rule = ""      # a teacher rule about stress marks, if the material uses them
+stress_rule = ""      # a voice-teacher rule about how the brief writes the language
+                      # (Ukrainian stress marks, Japanese kanji readings)
+text_rule = ""        # the same for text lessons (Polish diacritics, Japanese furigana)
 ```
 
 A bundled profile supplies phrases only; its `checks` are ignored.

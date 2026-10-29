@@ -1,8 +1,8 @@
 # learnanylanguage
 
-Short spoken lessons in any language: a coding agent prepares a
-self-contained lesson package, **ChatGPT Voice** teaches it, and the agent
-records the raw conversation as evidence of what was practised.
+Short lessons in any language: a coding agent prepares a self-contained
+lesson package, **ChatGPT** teaches it (in Voice, or in a typed chat), and the
+agent records the raw conversation as evidence of what was practised.
 
 This generalises the Ukrainian practice in
 [`diegoami/learnukrainian`](https://github.com/diegoami/learnukrainian):
@@ -24,9 +24,36 @@ This generalises the Ukrainian practice in
 | [`uk-reactivation`](tracks/uk-reactivation/) | Ukrainian | 7 | Reactivation after a Pimsleur-style Level 1; ported from learnukrainian with verified stress marks |
 | [`es-travel`](tracks/es-travel/) | Spanish | 3 | A first trip: greetings, café and paying, directions and transport (usted) |
 | [`es-smalltalk`](tracks/es-smalltalk/) | Spanish | 2 | Informal chat with friends: yourself and your likes, the weekend and plans (tú) |
+| [`uk-advanced`](tracks/uk-advanced/) | Ukrainian | 3 | Towards an advanced level: opinions and polite disagreement, telling a story (aspect), news and society (-но/-то forms) |
+| [`sv-everyday`](tracks/sv-everyday/) | Swedish | 3 | Everyday Swedish (du): introductions, fika and likes, the weekend and plans |
+| [`pl-first-steps`](tracks/pl-first-steps/) | Polish | 3 | A first stay in Poland (pan/pani): introductions, café and paying, directions and transport |
+| [`ja-first-steps`](tracks/ja-first-steps/) | Japanese | 3 | Polite everyday Japanese (です／ます): introductions, shopping and ordering, time and plans |
 
-The two Spanish tracks share one review queue; `es-smalltalk` overrides the
-Spanish profile's classroom phrases to stay informal.
+Tracks of one language share one review queue (the two Spanish tracks; the
+two Ukrainian ones); `es-smalltalk` overrides the Spanish profile's classroom
+phrases to stay informal. The four newest tracks have **Grammar**,
+**Vocabulary** and **Writing** sections per session for the experimental
+modes below.
+
+## Lesson modes
+
+Every lesson has exactly one mode and lasts about 5–10 minutes.
+
+| Mode | Channel | What happens |
+| --- | --- | --- |
+| `repetition` | voice | listen and repeat the session's opening lines, then a short recall pass |
+| `guided` | voice | one role-play for one lesson part, 4–6 target expressions |
+| `free` | voice | open conversation on the session topic, light recasts only |
+| `grammar` *(experimental)* | voice or text | one pattern, 6–10 cue → answer items, one-chunk corrections, a repeat pass |
+| `vocabulary` *(experimental)* | voice or text | 6–10 words found from prompts, each used in a sentence, a repeat pass |
+| `writing` *(experimental)* | text | write a short text, get a minimal rewrite with reasoned corrections, do a follow-up |
+
+The experimental modes end with an optional **report**: after the closing
+sentence, type `REPORT` in the same chat and the teacher writes a factual
+`LESSON_REPORT` (items reached independently, after a cue or corrected; the
+corrections; words it gave). No scores or assessment. `lal report` checks it
+and turns it into tracker rows, and the record workflow verifies every line
+against the transcript, which stays the evidence.
 
 ## Quick start
 
@@ -39,12 +66,13 @@ lal start es-travel                # create learner data, make it the current tr
 $EDITOR "$(lal paths | sed -n 's/^learner data: //p')/profile.toml"
 
 lal lesson new --mode repetition --session 1   # skeleton in the learner data
+lal lesson new --mode grammar --session 1 --channel text   # an experimental typed drill
 # ... fill the <<FILL>> fields (or let your coding agent do it: workflows/prepare.md)
 lal lesson check <package.md> && lal audit <package.md> && lal lesson copy <package.md>
 ```
 
 Then: new ChatGPT chat → paste → send → it answers only that it is ready →
-start voice and say the start command. Afterwards share the chat and give
+start voice and say the start command (text lessons: type it). Afterwards share the chat and give
 the link to the agent (`lal share <link>` reads it; see
 [workflows/record.md](workflows/record.md)).
 
@@ -60,10 +88,11 @@ Switch language or track at any time: `lal start uk-reactivation`,
 | `lal track available / install / list / info / remove` | find and manage tracks |
 | `lal track validate / pack / index` | check and publish tracks |
 | `lal start ID` / `lal use ID` / `lal status` | choose the current track |
-| `lal lesson new / check / refresh / copy` | build and check packages |
+| `lal lesson new / check / refresh / copy` | build and check packages (`--channel voice\|text`) |
 | `lal audit FILE...` | the language's checks (Ukrainian stress, Spanish ¿…?) |
-| `lal prompt --mode M [--track ID]` | show the rendered teacher controller |
+| `lal prompt --mode M [--channel C] [--track ID]` | show the rendered teacher controller |
 | `lal share URL` | read a ChatGPT share link as a transcript |
+| `lal report FILE` | check a LESSON_REPORT and print it with evidence labels |
 
 Configuration: `lal.toml` (see [lal.example.toml](lal.example.toml)) or
 `LAL_HOME`, `LAL_DATA`, `LAL_TRACK_PATH`, `LAL_CONFIG`.
@@ -72,8 +101,8 @@ Configuration: `lal.toml` (see [lal.example.toml](lal.example.toml)) or
 
 ```
 src/lal/              engine: CLI, controller template, profiles, checks
-  prompt/CONTROLLER.md   the teacher prompt template (version g2)
-  languages/*.toml       language profiles (uk, es)
+  prompt/CONTROLLER.md   the teacher prompt template (version g3)
+  languages/*.toml       language profiles (uk, es, sv, pl, ja)
   checks/                built-in checks (uk_stress, es_punctuation)
 tracks/<id>/          track sources, released as <id>-<version>.tar.gz
 workflows/            prepare, record, iterate, track: for any coding agent

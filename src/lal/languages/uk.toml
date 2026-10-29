@@ -19,6 +19,9 @@ correction = "Виправлення:"
 interference = "a Russian word"
 stress_rule = "The brief marks stress with an acute accent (ка́ва). Pronounce every word with that stress, and never mention the marks."
 
+# Rule for text lessons (COMMON text), like stress_rule for voice.
+text_rule = "Copy the stress marks of the brief's words when you write them, and never add stress marks of your own."
+
 # Spoken by the learner at the start; accented for the learner's README.
 start_spoken = "Почні́мо"
 checks = ["uk_stress"]

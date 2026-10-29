@@ -1,6 +1,6 @@
 [project]
 name = "learnanylanguage"
-version = "0.1.0"
+version = "0.2.0"
 description = "Short ChatGPT Voice speaking lessons in any language, from pluggable tracks installed from GitHub releases"
 readme = "README.md"
 requires-python = ">=3.12"

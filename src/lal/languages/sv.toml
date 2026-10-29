@@ -1,0 +1,25 @@
+# Language profile: the classroom phrases the voice teacher uses, and the
+# built-in checks that run on lesson text in this language.
+code = "sv"
+name = "Swedish"
+native_name = "Svenska"
+
+start = "Nu börjar vi"
+close = "Lektionen är slut."
+english_please = "På engelska, tack"
+praise = ["Bra jobbat", "Jättebra", "Utmärkt", "Perfekt"]
+ack = ["Ja.", "Okej."]
+repeat_please = "Kan du säga det igen?"
+go_on = "Fortsätt."
+stop = "Vi slutar här"
+listen_repeat = "Lyssna och upprepa."
+now_you = "Nu får du försöka själv."
+correction = "Rättelse:"
+interference = ""
+# Swedish spelling shows no stress or pitch accent; the material adds no marks.
+stress_rule = ""
+# Rule for text lessons (COMMON text), like stress_rule for voice.
+text_rule = ""
+
+start_spoken = "Nu börjar vi"
+checks = []

@@ -1,0 +1,22 @@
+id = "pl-first-steps"
+version = "1.0.0"
+language = "pl"
+title = "Polish first steps"
+description = "Three short sessions for a first stay in Poland (formal pan/pani): introductions and repair, the café and paying, directions and transport. Each session has grammar, vocabulary and writing material for the drill and writing modes."
+source = "Polish first steps"
+learner_context = "a beginner preparing for a first stay in Poland"
+
+[[sessions]]
+number = 1
+title = "Greetings and introductions"
+parts = ["A", "B"]
+
+[[sessions]]
+number = 2
+title = "Café, shop and paying"
+parts = ["A", "B"]
+
+[[sessions]]
+number = 3
+title = "Directions and transport"
+parts = ["A", "B"]

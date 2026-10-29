@@ -1,7 +1,7 @@
 ---
 name: lesson-prepare
-description: Prepare the next short voice lesson package (repetition, guided conversation, or free conversation) for ChatGPT Voice, in any installed track and language. Use when the user asks to prepare their next lesson.
-argument-hint: "[track, mode and session/part, e.g. es-travel guided 2B — optional]"
+description: Prepare the next short lesson package for ChatGPT (voice or text): repetition, guided or free conversation, or the experimental grammar drill, vocabulary drill and writing modes, in any installed track and language. Use when the user asks to prepare their next lesson.
+argument-hint: "[track, mode, session/part and channel, e.g. es-travel guided 2B or pl-first-steps grammar 2 text — optional]"
 ---
 
 Input (may be empty): $ARGUMENTS

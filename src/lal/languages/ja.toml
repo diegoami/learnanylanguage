@@ -1,0 +1,27 @@
+# Language profile: the classroom phrases the voice teacher uses, and the
+# built-in checks that run on lesson text in this language.
+code = "ja"
+name = "Japanese"
+native_name = "日本語"
+
+start = "はじめましょう"
+close = "今日のレッスンはこれで終わりです。"
+english_please = "英語でお願いします"
+praise = ["すごいですね", "よくできました", "完璧です", "上手ですね"]
+ack = ["はい。", "ええ。"]
+repeat_please = "もう一度お願いします。"
+go_on = "続けてください。"
+stop = "終わりにしましょう"
+listen_repeat = "聞いて、繰り返してください。"
+now_you = "では、自分で言ってみてください。"
+correction = "正しくは："
+interference = ""
+# The voice rule for how the brief writes the language (the key is shared
+# with Ukrainian stress marks).
+stress_rule = "The brief writes Japanese in kanji and kana. Read every word with its usual reading, never read romaji or brackets aloud, and speak in polite です／ます forms unless the brief says otherwise."
+# Rule for text lessons (COMMON text).
+text_rule = "Write Japanese in kanji and kana as the brief does. The first time you write a kanji word, add its reading in hiragana in brackets, for example 駅（えき）. Never write romaji."
+
+# Spoken by the learner at the start; romanised for the learner's README.
+start_spoken = "はじめましょう (hajimemashō)"
+checks = []

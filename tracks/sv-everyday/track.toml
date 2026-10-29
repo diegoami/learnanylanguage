@@ -1,0 +1,22 @@
+id = "sv-everyday"
+version = "1.0.0"
+language = "sv"
+title = "Everyday Swedish: first conversations"
+description = "Three short sessions of everyday Swedish (du): introductions and repair, fika and likes, the weekend and plans. Each session has grammar, vocabulary and writing material for the drill and writing modes."
+source = "Swedish everyday"
+learner_context = "a beginner who wants to talk with Swedish neighbours and colleagues"
+
+[[sessions]]
+number = 1
+title = "Introductions and small talk"
+parts = ["A", "B"]
+
+[[sessions]]
+number = 2
+title = "Fika, food and likes"
+parts = ["A", "B"]
+
+[[sessions]]
+number = 3
+title = "The weekend and plans"
+parts = ["A", "B"]

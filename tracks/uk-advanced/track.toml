@@ -1,0 +1,22 @@
+id = "uk-advanced"
+version = "1.0.0"
+language = "uk"
+title = "Advanced Ukrainian: opinions, stories and the news"
+description = "Three sessions towards an advanced level: arguing a point and disagreeing politely, telling a story with the right aspect, and reporting and discussing the news. Grammar (conditional, aspect, impersonal -но/-то forms), vocabulary and writing sections for the drill and writing modes."
+source = "Ukrainian advanced"
+learner_context = "an intermediate learner of Ukrainian working towards an advanced level"
+
+[[sessions]]
+number = 1
+title = "Opinions and discussion"
+parts = ["A", "B"]
+
+[[sessions]]
+number = 2
+title = "Telling a story"
+parts = ["A", "B"]
+
+[[sessions]]
+number = 3
+title = "News and society"
+parts = ["A", "B"]

@@ -1,6 +1,7 @@
 # Who teaches: alternatives to ChatGPT, with your own key
 
-Evaluation, 2026-10-29. Today every lesson is taught by **ChatGPT** (Voice,
+Evaluation, 2026-10-29 (option E added the same day, on the owner's question
+about using ElevenLabs and Gemini/OpenRouter keys together). Today every lesson is taught by **ChatGPT** (Voice,
 or a typed chat) from a pasted package, recorded afterwards from a share
 link. This note looks at adding **other teachers as an option**, ChatGPT
 staying the default, and in particular Gemini with **bring-your-own-key
@@ -123,6 +124,55 @@ voice-teacher uses), OpenAI, or a local model.
 - Verdict: **build first**: low risk, immediately useful for the
   experimental text modes, and it settles the key handling before B.
 
+### E. A speech pipeline with two keys, ElevenLabs + Gemini/OpenRouter: `lal voice`
+
+voice-teacher's audio path with `lal`'s teacher: the learner's turn is
+recorded in the page, the local `lal` server sends it to **ElevenLabs Scribe
+v2** (language locked to the track's language), passes the text with the
+rendered package as system prompt to a **chat model through OpenRouter or
+Gemini** (`google/gemini-3.8-flash` by default, any model by choice), and
+speaks the reply with **ElevenLabs Multilingual v2**. Option C's chat call
+is the middle step, so E is C plus speech.
+
+- Keys: `ELEVENLABS_API_KEY` and `OPENROUTER_API_KEY` (or `GEMINI_API_KEY`),
+  both kept by the local server, which makes every call; the browser never
+  sees a key, so no ephemeral tokens are needed.
+- For: (1) **recognition locked to the language**, the setting voice-teacher
+  measured: Scribe kept Ukrainian Ukrainian (4.2 % word error rate) and kept
+  the learner's mistakes, so the transcript is trustworthy evidence, which
+  is the point of recording. (2) **Stress**: Multilingual v2 read every judged
+  word right from stress-marked text (voice-teacher POC 2), so repetition
+  Lines and any marked words the model copies are spoken with the brief's
+  stress; a `text_rule`-like line asks the model to keep the marks. (3) The
+  teacher model is a free choice per lesson, and the transcript, with the
+  recogniser's text and timings, is written automatically. (4) Fixed lines
+  (repetition Lines, the close) are cached, so they are paid for once.
+  (5) Standard library only: multipart upload, two JSON calls, an MP3 back.
+- Against: (1) **turn-based, not realtime**: tap to talk, then recognition +
+  model + speech in sequence; voice-teacher measured about 1 s for
+  repetition turns and 2.5–3 s (up to 5.5 s) for judged turns, and `lal`'s
+  teacher writes the whole reply from the controller each turn, so expect
+  the upper end until replies are streamed. No interrupting the teacher.
+  (2) Two accounts and two bills. (3) The teacher still follows a prompt,
+  not a state machine: ChatGPT's adherence risks remain, but every turn is
+  now inspectable. (4) Phone use needs HTTPS (a tunnel), desktop first.
+- Cost per 10-minute lesson: voice-teacher measured $0.155 on a first run
+  (speech filling the cache) and $0.076 with a warm cache: Scribe about
+  $0.22 per hour of audio, ElevenLabs about $0.10 per 1,000 characters not
+  served from the cache, Gemini Flash a few cents. `lal`'s longer system
+  prompt adds a little; prompt caching keeps it small.
+- Languages: ElevenLabs lists Ukrainian, Polish, Japanese, Swedish and
+  Spanish for both Scribe v2 and Multilingual v2; voice-teacher has measured
+  only Ukrainian, so the first lesson in each language is also a
+  recognition check.
+- Verdict: **the voice option to build**, ahead of B: it fixes the evidence
+  problem (B's main risk) with measured components, at the price of
+  turn-based latency.
+
+B and E differ in what they trade: B sounds like a conversation but trusts
+the model's own ears; E is a walkie-talkie with trustworthy ears. For
+lessons whose output is evidence, the ears matter more.
+
 ### D. voice-teacher as the teacher
 
 Feed `lal` tracks into voice-teacher's engine (its legacy adapter already
@@ -138,15 +188,16 @@ reads learnukrainian packages plus reviewed lesson JSON).
 
 ## Comparison
 
-| | ChatGPT (today) | A · Gemini app | B · `lal live` (Gemini Live API) | C · `lal chat` (any chat API) | D · voice-teacher |
-| --- | --- | --- | --- | --- | --- |
-| Voice | yes | yes | yes | no | yes |
-| BYOK | no (subscription) | no | yes | yes | yes (server keys) |
-| Transcript | share link, by hand | unknown | automatic | automatic | automatic, with evidence |
-| Same controller and modes | yes | yes, with a COMMON variant | yes, with a COMMON variant | yes (text modes) | no |
-| Language-locked recognition | no | no | no | n/a | yes |
-| Cost per 10-minute lesson | in subscription | in subscription | ≈ $0.10–0.30, free tier | < $0.01 | ≈ $0.08–0.16 measured |
-| Effort in `lal` | — | minutes (test) | days (POC) | hours | separate project |
+| | ChatGPT (today) | A · Gemini app | B · `lal live` (Gemini Live API) | C · `lal chat` (any chat API) | E · `lal voice` (ElevenLabs + Gemini/OpenRouter) | D · voice-teacher |
+| --- | --- | --- | --- | --- | --- | --- |
+| Voice | yes, realtime | yes, realtime | yes, realtime | no | yes, turn-based (≈ 1–3 s) | yes, turn-based |
+| BYOK | no (subscription) | no | yes, one key | yes, one key | yes, two keys | yes (server keys) |
+| Transcript | share link, by hand | unknown | automatic | automatic | automatic | automatic, with evidence |
+| Same controller and modes | yes | yes, with a COMMON variant | yes, with a COMMON variant | yes (text modes) | yes, with a COMMON variant | no |
+| Language-locked recognition, mistakes kept | no | no | no | n/a | **yes** (Scribe, measured for uk) | yes |
+| Stress from marked text | partly | unknown | partly | n/a | **yes** (Multilingual v2, measured) | yes |
+| Cost per 10-minute lesson | in subscription | in subscription | ≈ $0.10–0.30, free tier | < $0.01 | ≈ $0.08–0.16 (voice-teacher's measurements) | ≈ $0.08–0.16 measured |
+| Effort in `lal` | — | minutes (test) | days (POC) | hours | days (POC), on top of C | separate project |
 
 ## Recommendation
 
@@ -156,11 +207,15 @@ reads learnukrainian packages plus reviewed lesson JSON).
    and `--model`, keys from the environment or `~/.config/learnanylanguage/keys.toml`
    (mode 600), transcript written into the lesson folder in the share
    format so `lal report` and the record workflow work unchanged.
-3. **Then a `lal live` POC** (B) on Gemini Live with an ephemeral token from
-   the local server: one lesson per language, recorded and checked like
-   ChatGPT runs, plus the recognition check (are the learner's mistakes and
-   language preserved in the input transcription?).
-4. Teacher choice stays per lesson: `teacher = "chatgpt"` remains the
+3. **Then `lal voice`** (E): add the ElevenLabs key to C, a tap-to-talk
+   page, Scribe locked to the track's language, Multilingual v2 with a cache
+   of fixed lines. One lesson per language, recorded and checked like the
+   ChatGPT runs, comparing adherence and the recognition of the learner's
+   own turns.
+4. **Maybe later, `lal live`** (B), if E's turn latency proves to be the
+   problem: the same lessons on Gemini Live, to see whether realtime
+   conversation is worth trusting the model's own recognition.
+5. Teacher choice stays per lesson: `teacher = "chatgpt"` remains the
    default; packages for an API teacher get their own COMMON variant (no
    paste step, no "Ready" reply) and the teacher is recorded in
    `teacher-runs.md`, so runs can be compared per teacher and prompt version.

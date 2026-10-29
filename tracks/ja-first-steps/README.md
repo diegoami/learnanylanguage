@@ -26,7 +26,12 @@ write the same word.
 - Keep to です／ます forms; plain forms appear only as dictionary forms in
   the grammar tables.
 - Text lessons: the Japanese profile asks the teacher to add the hiragana
-  reading after each kanji word the first time it is written. A learner who
+  reading after each kanji word the first time it is written. With
+  `romanization = true` under `[languages.ja]` in the learner's
+  `profile.toml`, typed packages ask for the romaji after each sentence
+  instead, and `lal web` (own keys) shows romaji under every Japanese turn,
+  never spoken and never in the transcript. Voice packages never contain
+  romaji, so ChatGPT Voice does not read it aloud. A learner who
   types in romaji should get the answer in Japanese script; that is not an
   error to correct.
 - Speech recognition may write the learner's turns in kana or kanji

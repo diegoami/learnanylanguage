@@ -103,3 +103,10 @@ def test_the_lesson_page_opens_learner_files_in_the_editor(site, monkeypatch):
     result = post(origin + "/api/open", {"path": f"tracks/pl-first-steps/sessions/{folder.name}/package.md"}, origin)
     assert result["opened"][0] == "code" and calls[0][-1].endswith("package.md")
     assert status(lambda: post(origin + "/api/open", {"path": "../x.md"}, origin)) == 403
+
+
+def test_info_reports_the_romanization_preference(site, dev_cfg):
+    origin, _ = site
+    assert json.loads(get(origin + "/api/info")[1])["romanization"] == []
+    (dev_cfg.data_dir / "profile.toml").write_text('[languages.ja]\nromanization = true\n', encoding="utf-8")
+    assert json.loads(get(origin + "/api/info")[1])["romanization"] == ["ja"]

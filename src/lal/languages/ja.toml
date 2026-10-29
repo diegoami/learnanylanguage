@@ -21,6 +21,9 @@ interference = ""
 stress_rule = "The brief writes Japanese in kanji and kana. Read every word with its usual reading, never read romaji or brackets aloud, and speak in polite です／ます forms unless the brief says otherwise."
 # Rule for text lessons (COMMON text).
 text_rule = "Write Japanese in kanji and kana as the brief does. The first time you write a kanji word, add its reading in hiragana in brackets, for example 駅（えき）. Never write romaji."
+# Replaces text_rule when the learner's profile has `romanization = true`
+# under [languages.ja].
+romanized_text_rule = "Write Japanese in kanji and kana as the brief does. After each Japanese sentence you write, add its romaji in brackets (Hepburn, long vowels with macrons), for example 駅はどこですか。(Eki wa doko desu ka.)"
 
 # Spoken by the learner at the start; romanised for the learner's README.
 start_spoken = "はじめましょう (hajimemashō)"

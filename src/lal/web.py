@@ -106,7 +106,9 @@ def handler(cfg: Config, origin: str) -> type[BaseHTTPRequestHandler]:
             query = urllib.parse.parse_qs(url.query)
             try:
                 if url.path == "/api/info":
-                    self.json({"server": "lal", "version": __version__, "data": str(cfg.data_dir)})
+                    languages = learner.profile(cfg).get("languages", {})
+                    self.json({"server": "lal", "version": __version__, "data": str(cfg.data_dir),
+                               "romanization": sorted(k for k, v in languages.items() if v.get("romanization"))})
                 elif url.path == "/api/lessons":
                     self.json(lessons(cfg))
                 elif url.path == "/api/companion":

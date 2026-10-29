@@ -70,3 +70,14 @@ test("the page loads no third-party scripts", () => {
   const html = readFileSync(new URL("../../src/lal/web/index.html", import.meta.url), "utf-8");
   assert.deepEqual([...html.matchAll(/<script[^>]*src="([^"]+)"/g)].map(m => m[1]), ["app.js"]);
 });
+
+test("romaji is asked of the same provider, and only for Japanese text", () => {
+  const o = core.romanizeRequest("openrouter", "k", "google/gemini-3.8-flash", "駅はどこですか。");
+  const body = JSON.parse(o.init.body);
+  assert.equal(body.messages.length, 1);
+  assert.match(body.messages[0].content, /Hepburn romaji[\s\S]*駅はどこですか。$/);
+  const g = core.romanizeRequest("gemini", "k", "gemini-3.8-flash", "はい");
+  assert.match(g.url, /generativelanguage/);
+  assert.ok(core.hasJapanese("コーヒーを一つください") && core.hasJapanese("駅"));
+  assert.ok(!core.hasJapanese("Kōhī o hitotsu kudasai") && !core.hasJapanese("Добрий день"));
+});

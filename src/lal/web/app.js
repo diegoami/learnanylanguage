@@ -6,8 +6,9 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const SETTINGS = "lal.web.settings";
 
-let settings = { provider: "openrouter", model: "", openrouterKey: "", geminiKey: "", elevenlabsKey: "", voice: core.ELEVENLABS.voice };
+let settings = { provider: "openrouter", model: "", openrouterKey: "", geminiKey: "", elevenlabsKey: "", voice: core.ELEVENLABS.voice, romaji: "profile" };
 let server = false;      // served by `lal web`, with the learner data behind it
+let profileRomanization = []; // languages whose romanization the learner's profile turns on
 let lesson = null;       // { package, info, track?, folder?, recorded? }
 let teacher = "chatgpt"; // chatgpt | typed | voice
 let turns = [], models = new Set(), started = "", busy = false, recorder = null, chunks = [];
@@ -25,10 +26,10 @@ function renderSettings() {
   $("provider").value = settings.provider;
   $("model").value = settings.model;
   $("model").placeholder = core.PROVIDERS[settings.provider].model;
-  for (const k of ["openrouterKey", "geminiKey", "elevenlabsKey", "voice"]) $(k).value = settings[k];
+  for (const k of ["openrouterKey", "geminiKey", "elevenlabsKey", "voice", "romaji"]) $(k).value = settings[k];
 }
 function bindSettings() {
-  for (const k of ["provider", "model", "openrouterKey", "geminiKey", "elevenlabsKey", "voice"]) {
+  for (const k of ["provider", "model", "openrouterKey", "geminiKey", "elevenlabsKey", "voice", "romaji"]) {
     $(k).addEventListener("change", () => { settings[k] = $(k).value.trim(); saveSettings(); renderSettings(); renderTeacher(); });
   }
   $("forget").addEventListener("click", () => {
@@ -44,6 +45,7 @@ async function loadLessons() {
   try {
     const info = await (await fetch("/api/info")).json();
     server = info.server === "lal";
+    profileRomanization = info.romanization || [];
     $("dataPath").textContent = info.data;
   } catch { server = false; }
   $("serverLessons").hidden = !server;
@@ -99,7 +101,7 @@ function renderTeacher() {
 
 function renderLog() {
   const done = turns.some(t => t.who === "teacher" && core.isClose(t.text, lesson?.info.close));
-  $("log").innerHTML = turns.map(t => `<div class="turn ${t.who}${t.ready ? " ready" : ""}"><span>${t.who === "teacher" ? "Teacher" : "You"}${t.channel === "voice" ? " 🎙" : ""}</span>${esc(t.text)}</div>`).join("");
+  $("log").innerHTML = turns.map(t => `<div class="turn ${t.who}${t.ready ? " ready" : ""}"><span>${t.who === "teacher" ? "Teacher" : "You"}${t.channel === "voice" ? " 🎙" : ""}</span>${esc(t.text)}${t.romaji ? `<small class="romaji">${esc(t.romaji)}</small>` : ""}</div>`).join("");
   $("log").scrollTop = $("log").scrollHeight;
   $("afterRow").hidden = !turns.length;
   $("reportBtn").hidden = !done || !/drill|writing/.test(lesson?.info.mode || "") || turns.some(t => t.text.trim() === "REPORT");
@@ -118,6 +120,24 @@ async function askTeacher() {
   if (!response.ok) throw new Error(`${core.PROVIDERS[settings.provider].label}: ${data?.error?.message || response.status}`);
   models.add(data.model || chatModel());
   return request.reply(data).trim();
+}
+
+// Romaji under Japanese turns: display only, never spoken, never in the transcript.
+function wantsRomaji() {
+  if (!lesson || lesson.info.language !== "ja" || teacher === "chatgpt") return false;
+  if (lesson.package.includes("add its romaji")) return false; // a typed package: the teacher writes it
+  return settings.romaji === "on" || (settings.romaji === "profile" && profileRomanization.includes("ja"));
+}
+
+async function romanize(turn) {
+  if (!wantsRomaji() || turn.ready || !core.hasJapanese(turn.text)) return;
+  try {
+    const request = core.romanizeRequest(settings.provider, chatKey(), chatModel(), turn.text);
+    const response = await fetch(request.url, request.init);
+    if (!response.ok) return;
+    turn.romaji = request.reply(await response.json()).trim();
+    renderLog();
+  } catch { /* romaji is a help; the lesson goes on without it */ }
 }
 
 async function say(text) {
@@ -150,7 +170,9 @@ function play(url) {
 async function teacherTurn(ready = false) {
   setStatus("The teacher is thinking…");
   const text = await askTeacher();
-  turns.push({ who: "teacher", text, channel: teacher === "voice" && !ready ? "voice" : "text", ready });
+  const turn = { who: "teacher", text, channel: teacher === "voice" && !ready ? "voice" : "text", ready };
+  turns.push(turn);
+  romanize(turn);
   keepDraft();
   renderLog();
   const askedReport = turns.length > 1 && turns[turns.length - 2].text.trim() === "REPORT";
@@ -165,7 +187,9 @@ async function teacherTurn(ready = false) {
 }
 
 async function learnerTurn(text, channel) {
-  turns.push({ who: "learner", text, channel });
+  const turn = { who: "learner", text, channel };
+  turns.push(turn);
+  romanize(turn);
   keepDraft();
   renderLog();
   await teacherTurn();
@@ -286,7 +310,7 @@ async function savePasted() {
 // --- saving -----------------------------------------------------------------------
 const draftKey = () => lesson?.folder ? `lal.web.draft.${lesson.track}/${lesson.folder}` : "lal.web.draft.pasted";
 function keepDraft() {
-  try { localStorage.setItem(draftKey(), JSON.stringify({ turns, models: [...models], started, teacher })); } catch { /* private mode */ }
+  try { localStorage.setItem(draftKey(), JSON.stringify({ turns: turns.map(({ romaji, ...t }) => t), models: [...models], started, teacher })); } catch { /* private mode */ }
 }
 function dropDraft() { try { localStorage.removeItem(draftKey()); } catch { /* private mode */ } }
 

@@ -39,6 +39,7 @@ textarea { min-height: 90px; }
 .turn.teacher { background: var(--teacher); }
 .turn.learner { background: var(--learner); margin-left: 24px; }
 .turn.ready { opacity: .6; }
+.turn small.romaji { display: block; color: var(--muted); font-style: italic; margin-top: 2px; }
 #talkBtn { width: 100%; padding: 22px; font-size: 18px; }
 #status { min-height: 1.5em; }
 #shareResult { white-space: pre-wrap; max-height: 40vh; overflow: auto; font-size: 14px; }
@@ -140,6 +141,8 @@ label.field { display: block; margin: 10px 0 4px; font-weight: 600; font-size: 1
     <input type="password" id="elevenlabsKey" autocomplete="off">
     <label class="field" for="voice">ElevenLabs voice ID</label>
     <input type="text" id="voice">
+    <label class="field" for="romaji">Romaji under Japanese turns (own keys; shown, never spoken)</label>
+    <select id="romaji"><option value="profile">As in my profile (romanization = true)</option><option value="on">On</option><option value="off">Off</option></select>
     <div class="row"><button id="forget">Forget the keys</button></div>
   </div>
 </section>

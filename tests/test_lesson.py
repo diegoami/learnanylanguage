@@ -149,3 +149,21 @@ def test_a_channel_the_mode_does_not_allow_is_refused(started):
     path.write_text(text.replace("Mode: vocabulary drill", "Mode: writing"), encoding="utf-8")
     errors, _, _ = lesson.check(started, path)
     assert errors  # a writing controller is not in the package
+
+
+def test_romanization_preference_changes_only_typed_japanese_packages(dev_cfg):
+    track = tracks.find(dev_cfg, "ja-first-steps")
+    learner.start(dev_cfg, track)
+    (dev_cfg.data_dir / "profile.toml").write_text(
+        'name = "Diego"\n[languages.ja]\nromanization = true\n', encoding="utf-8")
+    assert learner.romanized(dev_cfg, "ja") and not learner.romanized(dev_cfg, "uk")
+    typed = lesson.skeleton(dev_cfg, track, "writing", 1, "")
+    assert "add its romaji in brackets" in typed and "Never write romaji" not in typed
+    voice = lesson.skeleton(dev_cfg, track, "repetition", 1, "")
+    assert "romaji" not in voice.split("SESSION_BRIEF")[0].replace("never read romaji", "")
+    path = lesson.write_skeleton(dev_cfg, track, "writing", 1, "", "2026-10-29")
+    assert not any("controller" in e for e in lesson.check(dev_cfg, path)[0])
+    (dev_cfg.data_dir / "profile.toml").write_text('name = "Diego"\n', encoding="utf-8")
+    assert any("controller" in e for e in lesson.check(dev_cfg, path)[0])  # the preference changed: refresh
+    lesson.refresh(dev_cfg, path)
+    assert "Never write romaji" in path.read_text(encoding="utf-8")

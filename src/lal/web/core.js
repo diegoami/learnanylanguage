@@ -141,3 +141,15 @@ export function markdownToHtml(text) {
   }
   return out.join("\n");
 }
+
+/** The request that asks the teacher's model for a Latin transcription of one turn (display only). */
+export function romanizeRequest(provider, key, model, text) {
+  const ask = "Write this Japanese text in Hepburn romaji, long vowels with macrons (kōhī). "
+    + "Reply with the romaji only, nothing else.\n\n" + text;
+  return provider === "gemini" ? geminiRequest(key, model, ask, []) : openrouterRequest(key, model, ask, []);
+}
+
+/** Japanese characters in the text (kana or kanji), so it needs romaji. */
+export function hasJapanese(text) {
+  return /[぀-ヿ一-鿿]/.test(text);
+}

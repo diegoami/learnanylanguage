@@ -28,6 +28,7 @@ class Language:
     interference: str
     stress_rule: str
     text_rule: str
+    romanized_text_rule: str
     start_spoken: str
     checks: list[str]
     builtin: bool
@@ -59,6 +60,7 @@ def parse(raw: dict, builtin: bool, origin: str) -> Language:
         interference=raw.get("interference", ""),
         stress_rule=raw.get("stress_rule", ""),
         text_rule=raw.get("text_rule", ""),
+        romanized_text_rule=raw.get("romanized_text_rule", ""),
         start_spoken=raw.get("start_spoken", raw["start"]),
         checks=list(raw.get("checks", [])) if builtin else [],
         builtin=builtin,

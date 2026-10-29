@@ -155,6 +155,11 @@ and `lal web` regenerate it, and `lal web` shows it in its Companion tab.
 Every lesson keeps its full transcript in its folder: a ChatGPT share link,
 a pasted conversation, or the page's own record.
 
+For Japanese, `romanization = true` under `[languages.ja]` in `profile.toml`
+adds romaji: typed packages ask the teacher for it after each sentence, and
+`lal web` shows it under each turn (own keys; never spoken, never in the
+transcript). Voice packages stay script-only.
+
 Neither page edits files: their viewers have **Open in editor**, which
 starts the application set as `editor` in `lal.toml` (for example `editor =
 "code"` for VS Code; `$LAL_EDITOR` works too), or the system's opener when

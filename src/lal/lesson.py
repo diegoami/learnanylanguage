@@ -124,9 +124,11 @@ def block(name: str, values: dict[str, str]) -> str:
     return render(match.group(1).strip("\n"), values)
 
 
-def values_for(track: tracks.Track, language: Language) -> dict[str, str]:
+def values_for(track: tracks.Track, language: Language, cfg: Config | None = None) -> dict[str, str]:
     values = language.placeholders()
     values.update(version=prompt_version(), learner_context=track.learner_context)
+    if cfg and language.romanized_text_rule and learner.romanized(cfg, track.language_code):
+        values["text_rule"] = language.romanized_text_rule
     return values
 
 
@@ -139,9 +141,10 @@ def channel_for(mode: str, channel: str | None = None) -> str:
     return channel
 
 
-def controller(track: tracks.Track, mode: str, channel: str | None = None) -> str:
+def controller(track: tracks.Track, mode: str, channel: str | None = None, cfg: Config | None = None) -> str:
+    """The rendered controller; with cfg, the learner's preferences apply (romanization in text lessons)."""
     channel = channel_for(mode, channel)
-    values = values_for(track, track.language)
+    values = values_for(track, track.language, cfg)
     if mode in REPORT_MODES:
         common, close = f"COMMON {channel}", "CLOSE report"
     else:
@@ -291,7 +294,7 @@ def skeleton(cfg: Config, track: tracks.Track, mode: str, session: int, part: st
             raise ValueError("a guided lesson needs a part, e.g. --part A")
         if s.parts and part not in s.parts:
             raise ValueError(f"session {session} has parts {', '.join(s.parts)}, not {part}")
-    return f"{controller(track, mode, channel)}\n\n{brief(cfg, track, mode, session, part, channel)}\n"
+    return f"{controller(track, mode, channel, cfg)}\n\n{brief(cfg, track, mode, session, part, channel)}\n"
 
 
 def write_skeleton(cfg: Config, track: tracks.Track, mode: str, session: int, part: str,
@@ -369,7 +372,7 @@ def check(cfg: Config, path: Path) -> tuple[list[str], list[str], str]:
         channel = channel_of(package, mode)
     except ValueError as error:
         return [str(error)], [], ""
-    if controller(track, mode, channel) not in package:
+    if controller(track, mode, channel, cfg) not in package:
         errors.append(f"{mode} {channel} controller for {track.language.name} is missing or was altered "
                       "(copy it verbatim)")
     start = re.search(r"^SESSION_BRIEF$", package, re.M)
@@ -473,7 +476,7 @@ def refresh(cfg: Config, path: Path) -> None:
         raise ValueError(f"{path}: no Mode or SESSION_BRIEF line")
     track = track_of(cfg, package)
     channel = channel_of(package, mode)
-    path.write_text(controller(track, mode, channel) + "\n\n" + package[match.start():],
+    path.write_text(controller(track, mode, channel, cfg) + "\n\n" + package[match.start():],
                     encoding="utf-8", newline="\n")
 
 

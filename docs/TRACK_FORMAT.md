@@ -110,6 +110,8 @@ interference = ""     # e.g. "a Russian word" for Ukrainian
 stress_rule = ""      # a voice-teacher rule about how the brief writes the language
                       # (Ukrainian stress marks, Japanese kanji readings)
 text_rule = ""        # the same for text lessons (Polish diacritics, Japanese furigana)
+romanized_text_rule = ""  # optional: replaces text_rule for a learner whose profile has
+                          # romanization = true for this language (Japanese romaji)
 ```
 
 A bundled profile supplies phrases only; its `checks` are ignored.

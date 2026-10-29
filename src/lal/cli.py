@@ -226,7 +226,7 @@ def cmd_audit(cfg, args):
 
 def cmd_prompt(cfg, args):
     track = resolve_track(cfg, args.track)
-    print(lesson.controller(track, args.mode, args.channel))
+    print(lesson.controller(track, args.mode, args.channel, cfg))
     return 0
 
 

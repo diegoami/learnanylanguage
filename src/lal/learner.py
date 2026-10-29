@@ -35,6 +35,8 @@ about = ""
 # notes = "Uses masculine forms (я хоті́в би, я переду́мав)."
 # [languages.pl]
 # notes = "Address him as pan; he uses masculine forms (byłem, chciałbym)."
+# [languages.ja]
+# romanization = true   # romaji with the Japanese in typed lessons and in lal web
 """
 
 QUEUE_TEMPLATE = """\
@@ -88,6 +90,11 @@ def learner_line(cfg: Config, language: str) -> str:
                 "profile.toml in the learner data and rebuild>>")
     parts = [f"{name}.", lang.get("notes", ""), data.get("about", "")]
     return " ".join(p.strip() for p in parts if p and p.strip())
+
+
+def romanized(cfg: Config, language: str) -> bool:
+    """Whether the learner wants a Latin transcription with this language (romaji for Japanese)."""
+    return bool(profile(cfg).get("languages", {}).get(language, {}).get("romanization", False))
 
 
 def track_dir(cfg: Config, track_id: str) -> Path:

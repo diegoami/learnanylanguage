@@ -33,6 +33,8 @@ about = ""
 # [languages.uk]
 # spoken_name = "Діє́го"
 # notes = "Uses masculine forms (я хоті́в би, я переду́мав)."
+# [languages.pl]
+# notes = "Address him as pan; he uses masculine forms (byłem, chciałbym)."
 """
 
 QUEUE_TEMPLATE = """\

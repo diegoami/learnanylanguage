@@ -1,0 +1,22 @@
+id = "ja-first-steps"
+version = "1.0.0"
+language = "ja"
+title = "Japanese first steps"
+description = "Three short sessions of polite everyday Japanese (です／ます) for a first visit: introductions and repair, shopping and ordering, time and plans. Material with romaji and translations; grammar, vocabulary and writing sections for the drill and writing modes."
+source = "Japanese first steps"
+learner_context = "a beginner who wants polite everyday Japanese for a first visit to Japan"
+
+[[sessions]]
+number = 1
+title = "Introductions"
+parts = ["A", "B"]
+
+[[sessions]]
+number = 2
+title = "Shopping and ordering"
+parts = ["A", "B"]
+
+[[sessions]]
+number = 3
+title = "Time and plans"
+parts = ["A", "B"]

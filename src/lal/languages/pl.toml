@@ -1,0 +1,26 @@
+# Language profile: the classroom phrases the voice teacher uses, and the
+# built-in checks that run on lesson text in this language.
+# The phrases avoid pan/pani, so they suit every learner.
+code = "pl"
+name = "Polish"
+native_name = "Polski"
+
+start = "Zaczynamy"
+close = "Lekcja skończona."
+english_please = "Po angielsku, proszę"
+praise = ["Bardzo dobrze", "Świetnie", "Doskonale", "Brawo"]
+ack = ["Tak.", "Dobrze."]
+repeat_please = "Proszę powtórzyć."
+go_on = "Proszę mówić dalej."
+stop = "Kończymy"
+listen_repeat = "Proszę posłuchać i powtórzyć."
+now_you = "Teraz proszę spróbować samodzielnie."
+correction = "Poprawnie:"
+interference = ""
+# Polish stress is regular (the penultimate syllable); no marks.
+stress_rule = ""
+# Rule for text lessons (COMMON text), like stress_rule for voice.
+text_rule = "Always write Polish with its diacritics (ą, ę, ł, ó, ś, ć, ń, ź, ż)."
+
+start_spoken = "Zaczynamy"
+checks = []

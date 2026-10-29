@@ -1,7 +1,7 @@
 # Workflow: record a finished lesson
 
-Use when the user shares a finished ChatGPT Voice lesson (a share link, a
-pasted conversation, or a folder). `<data>` is the learner data folder
+Use when the user shares a finished ChatGPT lesson, voice or text (a share
+link, a pasted conversation, or a folder). `<data>` is the learner data folder
 (`lal paths`). The package's `Track:` line names the track.
 
 Input (optional): a share link, a lesson folder, or a transcript path.
@@ -28,7 +28,24 @@ conversation. Never tidy, translate, or correct the transcript.
 
 Learner turns come from speech recognition: a garbled or implausible turn is
 a recognition problem, not a learner error. When a turn is plausibly
-misrecognised, say so instead of recording a correction.
+misrecognised, say so instead of recording a correction. Typed turns (text
+lessons) are the learner's own: spelling there is learner evidence.
+
+## 1b. The LESSON_REPORT (grammar, vocabulary, writing; optional)
+
+If the learner typed `REPORT` after the close, the transcript ends with a
+LESSON_REPORT. Run `lal report <transcript.md>`: it checks the format, flags
+scores, levels, praise and pronunciation (a C23 failure), and prints the
+items with the tracker's evidence labels (independent → **independent**,
+after a cue → **cued**, corrected → **corrected and repeated** only if the
+transcript shows the repetition).
+
+Treat every line as a claim to verify: find the turns it describes. Keep the
+lines the transcript supports, correct the ones it contradicts, drop the
+ones it does not show, and record anything the report missed. Never record
+from the report alone. Note in the teacher-runs row how many report lines
+were wrong or missing (C23); that number decides whether the report is worth
+keeping (see g3 in `prompt/ITERATIONS.md`).
 
 ## 2. Learner record
 
@@ -41,11 +58,14 @@ In `<data>/tracks/<id>/TRACKER.md` and `<data>/queues/<lang>.md`:
   **independent**, **corrected and repeated**. Typically: repetition lines
   *repeated*, recall answers *independent* when produced before the model;
   guided steps per step; free conversation what the learner *used
-  independently* and the teacher's recasts (*modelled*).
+  independently* and the teacher's recasts (*modelled*); grammar Items and
+  vocabulary words per item; writing: the patterns the learner used
+  correctly (*independent*) and each correction (attempt → preferred form →
+  reason), *corrected and repeated* only if the follow-up reused it.
 - Preserve every useful attempt → preferred form → reason the transcript
   supports.
 - Add a dated **Practice history** entry with the line
-  `Mode: <mode>. Teacher: ChatGPT Voice, prompt <gN> — sessions/<folder>/`,
+  `Mode: <mode> (<voice | text>). Teacher: ChatGPT, prompt <gN> — sessions/<folder>/`,
   and a one-line process note if teacher behaviour limited coverage.
 - Update **Current position**: the session's status and its **Next** column.
   A session is **Covered** once its planned topic areas (track `PLAN.md`)
@@ -69,7 +89,7 @@ audio notes from the test-settings block, folder).
 
 Commit the transcript, tracker, queue and teacher-runs row together in the
 learner data repository, e.g. `es-travel: record Session 2B guided lesson
-(prompt g2)`. Report briefly: coverage change, new or updated queue targets,
+(prompt g3)`. Report briefly: coverage change, new or updated queue targets,
 failed checks, the suggested next lesson, and whether iterating the prompt
 ([iterate.md](iterate.md)) is worth it: recommend it when a check fails in a
 way that affects the lesson, or fails in two runs.

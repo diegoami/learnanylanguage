@@ -1,6 +1,6 @@
 # Workflow: iterate the voice-teacher prompt
 
-Use when the user wants to improve how the ChatGPT Voice teacher behaves.
+Use when the user wants to improve how the ChatGPT teacher behaves (voice or text).
 The controller is shared by every language and track, so a change is an
 engine change in this repository.
 
@@ -21,13 +21,15 @@ Input (optional): a specific teacher problem to address.
    the affected MODE block where possible. Anything language-specific goes
    into a `{{placeholder}}` filled from `src/lal/languages/<code>.toml`
    (add the key to every built-in profile). Never add scoring, summaries,
-   tracker output or repository-access claims.
+   tracker output or repository-access claims; the only report is the
+   factual LESSON_REPORT of CLOSE report, and it must stay free of scores.
 5. **Bump the version** (gN → gN+1) in the file header and in COMMON.
 6. **Log it** in `prompt/ITERATIONS.md` → **Versions**: date, changes, modes,
    checks and languages targeted, hypothesis, what to watch, how to roll back.
-7. **Test.** `uv run pytest`. The Ukrainian equivalence test pins g2; when
-   the change is deliberate, update `tests/fixtures/` to the new expected
-   text in the same commit.
+7. **Test.** `uv run pytest`. The Ukrainian equivalence test pins the
+   repetition, guided and free blocks to g2 (apart from the version line);
+   when a change to them is deliberate, update `tests/fixtures/` to the new
+   expected text in the same commit.
 8. **Refresh unused packages** in the learner data: for every lesson folder
    whose transcript is still only the template, `lal lesson refresh
    <package.md>`.

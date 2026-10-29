@@ -1,5 +1,5 @@
 """lal: choose a language and a track, install tracks from releases, and
-build, check and record one-mode ChatGPT Voice lessons."""
+build, check and record one-mode ChatGPT lessons, in voice or typed."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import re
 import sys
 from pathlib import Path
 
-from . import __version__, checks, config, languages, learner, lesson, registry, share, tracks
+from . import __version__, checks, config, languages, learner, lesson, registry, report, share, tracks
 
 
 def fail(message: str) -> int:
@@ -168,10 +168,10 @@ def cmd_lesson_new(cfg, args):
     track = resolve_track(cfg, args.track)
     part = (args.part or "").upper()
     if args.stdout:
-        print(lesson.skeleton(cfg, track, args.mode, args.session, part), end="")
+        print(lesson.skeleton(cfg, track, args.mode, args.session, part, args.channel), end="")
         return 0
     out = lesson.write_skeleton(cfg, track, args.mode, args.session, part, args.date,
-                                Path(args.out) if args.out else None)
+                                Path(args.out) if args.out else None, args.channel)
     print(out)
     return 0
 
@@ -226,8 +226,19 @@ def cmd_audit(cfg, args):
 
 def cmd_prompt(cfg, args):
     track = resolve_track(cfg, args.track)
-    print(lesson.controller(track, args.mode))
+    print(lesson.controller(track, args.mode, args.channel))
     return 0
+
+
+def cmd_report(cfg, args):
+    found, errors, warnings = report.read(args.path)
+    for w in warnings:
+        print(f"WARNING: {w}")
+    for e in errors:
+        print(f"ERROR: {e}")
+    if found is not None:
+        print(report.render(found))
+    return 1 if errors else 0
 
 
 def cmd_share(cfg, args):
@@ -291,6 +302,8 @@ def parser() -> argparse.ArgumentParser:
     nw.add_argument("--mode", choices=sorted(lesson.MODES), required=True)
     nw.add_argument("--session", type=int, required=True)
     nw.add_argument("--part", default="", help="lesson part letter (required for guided)")
+    nw.add_argument("--channel", choices=("voice", "text"),
+                    help="voice (ChatGPT Voice) or text (typed chat); default: the mode's first")
     nw.add_argument("--track", help="track id (default: current)")
     nw.add_argument("--date", default=dt.date.today().isoformat())
     nw.add_argument("--out")
@@ -311,8 +324,13 @@ def parser() -> argparse.ArgumentParser:
 
     pr = sub.add_parser("prompt", help="print the controller for a track and mode")
     pr.add_argument("--mode", choices=sorted(lesson.MODES), required=True)
+    pr.add_argument("--channel", choices=("voice", "text"))
     pr.add_argument("--track")
     pr.set_defaults(fn=cmd_prompt)
+
+    rp = sub.add_parser("report", help="check and tabulate the LESSON_REPORT in a transcript")
+    rp.add_argument("path", type=Path)
+    rp.set_defaults(fn=cmd_report)
 
     sh = sub.add_parser("share", help="read a ChatGPT share link as a transcript")
     sh.add_argument("url", nargs="?")

@@ -5,6 +5,11 @@ controller blocks, rendered for the track's language, the opening lines and
 the teacher introduction) are copied mechanically by `skeleton`. The coding
 agent then fills only the fields marked <<FILL: ...>>, and `check` verifies
 that nothing copied was altered and that the brief respects its mode's limits.
+
+Modes run in a channel: ChatGPT Voice (`voice`) or an ordinary typed ChatGPT
+chat (`text`). The grammar, vocabulary and writing modes (experimental, since
+prompt g3) end with an optional LESSON_REPORT the learner can ask for; see
+`report.py`.
 """
 
 from __future__ import annotations
@@ -24,30 +29,54 @@ MODES = {
     "repetition": "repetition",
     "guided": "guided conversation",
     "free": "free conversation",
+    "grammar": "grammar drill",
+    "vocabulary": "vocabulary drill",
+    "writing": "writing",
 }
+# The channels each mode runs in; the first is the default.
+CHANNELS = {
+    "repetition": ("voice",),
+    "guided": ("voice",),
+    "free": ("voice",),
+    "grammar": ("voice", "text"),
+    "vocabulary": ("voice", "text"),
+    "writing": ("text",),
+}
+REPORT_MODES = ("grammar", "vocabulary", "writing")
 MAX_WEAK = 2
 MAX_EXTRA_LINES = 2
 RECALL_RANGE = (3, 6)
 ACTIVE_RANGE = (4, 6)
 MAX_GUIDED_STEPS = 10
 MAX_VOCABULARY = 12
+ITEMS_RANGE = (6, 10)
+WORDS_RANGE = (6, 10)
+MAX_USEFUL = 8
 LENGTH = {
     "repetition": "{lines} Lines, then {recall} Recall prompts. Roughly 5–8 minutes.",
     "guided": "At most 10 Guided steps. Roughly 8–10 minutes.",
     "free": "About 15 learner turns. Roughly 8–10 minutes.",
+    "grammar": "The Items below, then at most three repeats. Roughly 5–8 minutes.",
+    "vocabulary": "The Word set below, then at most three repeats. Roughly 5–8 minutes.",
+    "writing": "One short text and one follow-up. Roughly 10–15 minutes.",
 }
+
+REPORT_NOTE = """
+
+If you asked for the LESSON_REPORT after the close, it is part of the
+conversation: keep it. The record workflow checks it against the turns."""
 
 TRANSCRIPT_TEMPLATE = """\
 # Transcript — {track}, Session {label}, {mode}
 
 Preferred: share the ChatGPT chat and give the link to the record workflow
 (`workflows/record.md`), which fills this file from it. If pasting by hand,
-include everything from the "Ready for voice" reply to the closing sentence,
-unedited; it is the evidence.
+include everything from the "Ready for …" reply to the closing sentence,
+unedited; it is the evidence.{report}
 
 ## Test settings
 
-- Mode: {mode} (voice | text dry run)
+- Mode: {mode} ({channel})
 - Prompt version: {version}
 - Model:
 - Voice language setting: {language}
@@ -101,16 +130,45 @@ def values_for(track: tracks.Track, language: Language) -> dict[str, str]:
     return values
 
 
-def controller(track: tracks.Track, mode: str) -> str:
+def channel_for(mode: str, channel: str | None = None) -> str:
+    """The channel a lesson runs in: the one asked for, if the mode allows it, else the default."""
+    allowed = CHANNELS[mode]
+    channel = channel or allowed[0]
+    if channel not in allowed:
+        raise ValueError(f"{MODES[mode]} lessons run in {' or '.join(allowed)}, not {channel}")
+    return channel
+
+
+def controller(track: tracks.Track, mode: str, channel: str | None = None) -> str:
+    channel = channel_for(mode, channel)
     values = values_for(track, track.language)
-    return "\n\n".join([block("COMMON", values), block(f"MODE {mode}", values), block("CLOSE", values)])
+    common = "COMMON" if channel == "voice" else "COMMON text"
+    close = "CLOSE report" if mode in REPORT_MODES else "CLOSE"
+    return "\n\n".join([block(common, values), block(f"MODE {mode}", values), block(close, values)])
+
+
+def brief_of(package: str) -> str:
+    """The SESSION_BRIEF and what follows it (the controller's report template has a Mode line too)."""
+    match = re.search(r"^SESSION_BRIEF$", package, re.M)
+    return package[match.start():] if match else package
 
 
 def mode_of(package: str) -> str | None:
-    match = re.search(r"^Mode: (.+)$", package, re.M)
+    match = re.search(r"^Mode: (.+)$", brief_of(package), re.M)
     if not match:
         return None
     return next((k for k, v in MODES.items() if match.group(1).strip() == v), None)
+
+
+def channel_of(package: str, mode: str) -> str:
+    """The brief's `Channel:` line; packages of the original modes have none (voice)."""
+    match = re.search(r"^Channel: (\S+)", brief_of(package), re.M)
+    return channel_for(mode, match.group(1) if match else None)
+
+
+def folder_name(date: str, label: str, mode: str, channel: str) -> str:
+    suffix = f"-{channel}" if len(CHANNELS[mode]) > 1 and channel != CHANNELS[mode][0] else ""
+    return f"{date}-session-{label}-{mode}{suffix}"
 
 
 def track_of(cfg: Config, package: str) -> tracks.Track:
@@ -120,14 +178,17 @@ def track_of(cfg: Config, package: str) -> tracks.Track:
     return tracks.find(cfg, match.group(1))
 
 
-def brief(cfg: Config, track: tracks.Track, mode: str, session: int, part: str) -> str:
+def brief(cfg: Config, track: tracks.Track, mode: str, session: int, part: str,
+          channel: str = "voice") -> str:
     title, intro, lines = track.opening(session)
+    lang = track.language.name
     queue = f"queues/{track.language_code}.md"
     weak_fill = ('<<FILL: "None", or at most two lines starting with "- ": expression — '
                  f"original source and origin, from {queue} in the learner data>>")
     head = [
         "SESSION_BRIEF",
         f"Mode: {MODES[mode]}",
+        *([f"Channel: {channel}"] if mode in REPORT_MODES else []),
         f"Track: {track.id} {track.version} — {track.title}",
         f"Session: {session} — {title}",
     ]
@@ -160,6 +221,40 @@ def brief(cfg: Config, track: tracks.Track, mode: str, session: int, part: str) 
             f"<<FILL: at most 10 numbered steps: the teacher's {track.language.name} line, "
             "then what the learner is to say as an outcome; no answers supplied>>",
         ]
+    elif mode == "grammar":
+        body = [
+            f"Length: {LENGTH[mode]}",
+            who,
+            "Pattern: <<FILL: one English sentence for the teacher: the form practised and "
+            "the change every Item asks for>>",
+            f"Instruction: <<FILL: one short {lang} sentence telling the learner what to do>>",
+            "Example: <<FILL: one \"cue → answer\" pair that is not among the Items>>",
+            "Items:",
+            "<<FILL: 6–10 numbered lines \"N. <cue> → <answer>\", built from the session's "
+            "material; one change per Item>>",
+        ]
+    elif mode == "vocabulary":
+        body = [
+            f"Length: {LENGTH[mode]}",
+            who,
+            "Word set:",
+            f"<<FILL: 6–10 numbered lines \"N. <prompt> → <word>\": the prompt a short {lang} "
+            "definition, opposite or situation, or an English gloss; the word from the "
+            "session's material>>",
+        ]
+    elif mode == "writing":
+        body = [
+            f"Length: {LENGTH[mode]}",
+            who,
+            f"Task: <<FILL: the writing task in {lang}, one to three short sentences, "
+            "saying how many sentences to write (3–8)>>",
+            "Useful language:",
+            "<<FILL: at most 8 lines starting with \"- \": words and patterns from the "
+            "session's material, each with its English meaning>>",
+            "Focus: <<FILL: one English sentence: what the corrections look at first>>",
+            f"Follow-up task: <<FILL: one {lang} sentence: a short second piece that reuses "
+            "the corrected points>>",
+        ]
     else:
         body = [
             f"Length: {LENGTH[mode]}",
@@ -177,28 +272,31 @@ def brief(cfg: Config, track: tracks.Track, mode: str, session: int, part: str) 
         f"Source: {track.source}",
         "END_SESSION_BRIEF",
         "",
-        "END_VOICE_SESSION_PACKAGE",
+        "END_VOICE_SESSION_PACKAGE" if channel == "voice" else "END_TEXT_SESSION_PACKAGE",
     ]
     return "\n".join(head + body + tail)
 
 
-def skeleton(cfg: Config, track: tracks.Track, mode: str, session: int, part: str) -> str:
+def skeleton(cfg: Config, track: tracks.Track, mode: str, session: int, part: str,
+             channel: str | None = None) -> str:
     if mode not in MODES:
         raise ValueError(f"mode must be one of {', '.join(MODES)}")
+    channel = channel_for(mode, channel)
     s = track.session(session)
     if mode == "guided":
         if not part:
             raise ValueError("a guided lesson needs a part, e.g. --part A")
         if s.parts and part not in s.parts:
             raise ValueError(f"session {session} has parts {', '.join(s.parts)}, not {part}")
-    return f"{controller(track, mode)}\n\n{brief(cfg, track, mode, session, part)}\n"
+    return f"{controller(track, mode, channel)}\n\n{brief(cfg, track, mode, session, part, channel)}\n"
 
 
 def write_skeleton(cfg: Config, track: tracks.Track, mode: str, session: int, part: str,
-                   date: str, out: Path | None = None) -> Path:
-    package = skeleton(cfg, track, mode, session, part)
+                   date: str, out: Path | None = None, channel: str | None = None) -> Path:
+    channel = channel_for(mode, channel)
+    package = skeleton(cfg, track, mode, session, part, channel)
     label = f"{session}{part}"
-    out = out or learner.sessions_dir(cfg, track.id) / f"{date}-session-{label}-{mode}" / "package.md"
+    out = out or learner.sessions_dir(cfg, track.id) / folder_name(date, label, mode, channel) / "package.md"
     if out.exists():
         raise FileExistsError(f"{out} already exists; refusing to overwrite")
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -207,7 +305,9 @@ def write_skeleton(cfg: Config, track: tracks.Track, mode: str, session: int, pa
     if not transcript.exists():
         transcript.write_text(TRANSCRIPT_TEMPLATE.format(
             track=track.id, label=label, mode=MODES[mode], version=prompt_version(),
-            language=track.language.name), encoding="utf-8", newline="\n")
+            language=track.language.name,
+            channel="voice | text dry run" if channel == "voice" else "text",
+            report=REPORT_NOTE if mode in REPORT_MODES else ""), encoding="utf-8", newline="\n")
     return out
 
 
@@ -224,6 +324,31 @@ def _numbered(text: str) -> list[str]:
     return [line for line in text.splitlines() if re.match(r"^\d+\. ", line)]
 
 
+def _line(text: str, name: str) -> str:
+    value = re.search(rf"^{re.escape(name)}(.*)$", text, re.M)
+    return value.group(1).strip() if value else ""
+
+
+def _empty_fields(text: str, names: tuple[str, ...]) -> list[str]:
+    return [f"field is empty: {name}" for name in names if not _line(text, name)]
+
+
+def _pair(text: str) -> bool:
+    """A "cue → answer" line with something on both sides of the arrow."""
+    left, arrow, right = re.sub(r"^\d+\.\s*", "", text).partition(" → ")
+    return bool(arrow and left.strip() and right.strip())
+
+
+def _pairs_in_range(lines: list[str], what: str, bounds: tuple[int, int]) -> list[str]:
+    low, high = bounds
+    errors = [] if low <= len(lines) <= high else [f"{len(lines)} {what}; allowed {low}–{high}"]
+    numbers = [int(re.match(r"\d+", line).group(0)) for line in lines]
+    if numbers != list(range(1, len(lines) + 1)):
+        errors.append(f"{what} must be numbered 1, 2, 3, … in order")
+    errors += [f"not a \"cue → answer\" line: {line}" for line in lines if not _pair(line)]
+    return errors
+
+
 def check(cfg: Config, path: Path) -> tuple[list[str], list[str], str]:
     """(errors, warnings, summary) for a filled package."""
     package = path.read_text(encoding="utf-8").replace("\r\n", "\n")
@@ -237,8 +362,17 @@ def check(cfg: Config, path: Path) -> tuple[list[str], list[str], str]:
     except (ValueError, LookupError) as error:
         return [str(error)], [], ""
 
-    if controller(track, mode) not in package:
-        errors.append(f"{mode} controller for {track.language.name} is missing or was altered (copy it verbatim)")
+    try:
+        channel = channel_of(package, mode)
+    except ValueError as error:
+        return [str(error)], [], ""
+    if controller(track, mode, channel) not in package:
+        errors.append(f"{mode} {channel} controller for {track.language.name} is missing or was altered "
+                      "(copy it verbatim)")
+    start = re.search(r"^SESSION_BRIEF$", package, re.M)
+    if not start:
+        return errors + ["no SESSION_BRIEF line"], warnings, ""
+    brief_text = package[start.start():]
     version = prompt_version()
     if f"Prompt version: {version}" not in package:
         errors.append(f"package does not state the current prompt version {version}")
@@ -252,7 +386,7 @@ def check(cfg: Config, path: Path) -> tuple[list[str], list[str], str]:
     if session is None:
         errors.append("cannot read the session number from 'Session: N — ...'")
 
-    weak_text = _field(package, "Earlier weak expressions included:", "Source:")
+    weak_text = _field(brief_text, "Earlier weak expressions included:", "Source:")
     weak = _bullets(weak_text)
     if weak_text != "None" and not weak:
         errors.append("earlier weak expressions must be 'None' or '- ' lines")
@@ -260,7 +394,7 @@ def check(cfg: Config, path: Path) -> tuple[list[str], list[str], str]:
         errors.append(f"{len(weak)} earlier weak expressions; allowed at most {MAX_WEAK}")
 
     if mode == "repetition":
-        lines = _numbered(_field(package, "Lines (", "Recall prompts:"))
+        lines = _numbered(_field(brief_text, "Lines (", "Recall prompts:"))
         declared = re.search(r"^Lines \((\d+)\):", package, re.M)
         if not declared or int(declared.group(1)) != len(lines):
             errors.append(f"'Lines (N):' must declare the {len(lines)} numbered lines")
@@ -272,7 +406,7 @@ def check(cfg: Config, path: Path) -> tuple[list[str], list[str], str]:
             extra = len(lines) - len(opening_lines)
             if extra > MAX_EXTRA_LINES:
                 errors.append(f"{extra} extra Lines; allowed at most {MAX_EXTRA_LINES}")
-        recall = _bullets(_field(package, "Recall prompts:", "Earlier weak expressions"))
+        recall = _bullets(_field(brief_text, "Recall prompts:", "Earlier weak expressions"))
         low, high = RECALL_RANGE
         if not low <= len(recall) <= high:
             errors.append(f"{len(recall)} recall prompts; allowed {low}–{high}")
@@ -286,24 +420,38 @@ def check(cfg: Config, path: Path) -> tuple[list[str], list[str], str]:
             _, intro, _ = track.opening(session)
             if intro not in package:
                 errors.append("teacher introduction is missing or altered")
-        active = _bullets(_field(package, "Active phrase set:", "Guided steps:"))
+        active = _bullets(_field(brief_text, "Active phrase set:", "Guided steps:"))
         low, high = ACTIVE_RANGE
         if not 1 <= len(active) <= high:
             errors.append(f"active phrase set has {len(active)} items; allowed 1–{high}")
         elif len(active) < low:
             warnings.append(f"active phrase set has only {len(active)} items (plan: {low}–{high})")
-        steps = _numbered(_field(package, "Guided steps:", "Earlier weak expressions"))
+        steps = _numbered(_field(brief_text, "Guided steps:", "Earlier weak expressions"))
         if not steps:
             errors.append("guided steps are empty or not numbered")
         if len(steps) > MAX_GUIDED_STEPS:
             errors.append(f"{len(steps)} guided steps; allowed at most {MAX_GUIDED_STEPS}")
         summary = f"{len(active)} active phrases, {len(steps)} guided steps"
+    elif mode == "grammar":
+        errors += _empty_fields(brief_text, ("Pattern:", "Instruction:", "Example:"))
+        if not _pair(_line(brief_text, "Example:")):
+            errors.append("the Example must be one \"cue → answer\" pair")
+        items = _numbered(_field(brief_text, "Items:", "Earlier weak expressions"))
+        errors += _pairs_in_range(items, "Items", ITEMS_RANGE)
+        summary = f"{channel}, {len(items)} items"
+    elif mode == "vocabulary":
+        words = _numbered(_field(brief_text, "Word set:", "Earlier weak expressions"))
+        errors += _pairs_in_range(words, "Word set entries", WORDS_RANGE)
+        summary = f"{channel}, {len(words)} words"
+    elif mode == "writing":
+        errors += _empty_fields(brief_text, ("Task:", "Focus:", "Follow-up task:"))
+        useful = _bullets(_field(brief_text, "Useful language:", "Focus:"))
+        if not 1 <= len(useful) <= MAX_USEFUL:
+            errors.append(f"useful language has {len(useful)} '- ' lines; allowed 1–{MAX_USEFUL}")
+        summary = f"{channel}, {len(useful)} useful-language lines"
     else:
-        for name in ("Topic:", "Situation:", "Opening question:"):
-            value = re.search(rf"^{re.escape(name)}(.*)$", package, re.M)
-            if not value or not value.group(1).strip():
-                errors.append(f"field is empty: {name}")
-        vocabulary = _bullets(_field(package, "Useful vocabulary:", "Earlier weak expressions"))
+        errors += _empty_fields(brief_text, ("Topic:", "Situation:", "Opening question:"))
+        vocabulary = _bullets(_field(brief_text, "Useful vocabulary:", "Earlier weak expressions"))
         if not vocabulary:
             errors.append("useful vocabulary has no '- ' lines")
         if len(vocabulary) > MAX_VOCABULARY:
@@ -321,7 +469,8 @@ def refresh(cfg: Config, path: Path) -> None:
     if mode is None or not match:
         raise ValueError(f"{path}: no Mode or SESSION_BRIEF line")
     track = track_of(cfg, package)
-    path.write_text(controller(track, mode) + "\n\n" + package[match.start():],
+    channel = channel_of(package, mode)
+    path.write_text(controller(track, mode, channel) + "\n\n" + package[match.start():],
                     encoding="utf-8", newline="\n")
 
 

@@ -12,10 +12,10 @@ def test_repository_tracks_are_valid(name):
     assert tracks.validate(TRACKS / name) == []
 
 
-def test_two_languages_and_three_tracks_ship_with_the_repository():
+def test_five_languages_ship_with_the_repository():
     loaded = [tracks.load(p) for p in TRACKS.iterdir()]
-    assert {t.language_code for t in loaded} == {"uk", "es"}
-    assert len(loaded) >= 3
+    assert {t.language_code for t in loaded} == {"uk", "es", "sv", "pl", "ja"}
+    assert all(t.language.builtin for t in loaded)
 
 
 def test_validation_rejects_code_and_mismatched_titles(tmp_path):

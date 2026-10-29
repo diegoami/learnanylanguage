@@ -1,5 +1,7 @@
 import re
 
+import pytest
+
 from lal import lesson, tracks
 
 from conftest import REPO, TRACKS
@@ -19,9 +21,39 @@ def g2(mode: str) -> str:
 
 
 def test_ukrainian_renders_word_for_word_as_learnukrainian_g2():
+    """The original modes are unchanged since g2; only the version line moved on."""
     track = tracks.load(TRACKS / "uk-reactivation")
-    for mode in lesson.MODES:
-        assert norm(lesson.controller(track, mode)) == norm(g2(mode)), mode
+    version = f"Prompt version: {lesson.prompt_version()}"
+    for mode in ("repetition", "guided", "free"):
+        expected = g2(mode).replace("Prompt version: g2", version)
+        assert norm(lesson.controller(track, mode)) == norm(expected), mode
+
+
+@pytest.mark.parametrize("mode, channel, common, close", [
+    ("grammar", "voice", "VOICE_SESSION_PACKAGE", "LESSON_REPORT"),
+    ("grammar", "text", "TEXT_SESSION_PACKAGE", "LESSON_REPORT"),
+    ("vocabulary", "text", "TEXT_SESSION_PACKAGE", "LESSON_REPORT"),
+    ("writing", None, "TEXT_SESSION_PACKAGE", "LESSON_REPORT"),
+    ("guided", None, "VOICE_SESSION_PACKAGE", "Then wait. If you are asked for a summary"),
+])
+def test_modes_pick_their_common_and_close_blocks(mode, channel, common, close):
+    text = lesson.controller(tracks.load(TRACKS / "pl-first-steps"), mode, channel)
+    assert text.startswith(common) and close in text
+    assert "{{" not in text and "Polish" in text
+
+
+def test_channels_are_limited_per_mode():
+    track = tracks.load(TRACKS / "es-travel")
+    with pytest.raises(ValueError, match="run in voice"):
+        lesson.controller(track, "guided", "text")
+    with pytest.raises(ValueError, match="run in text"):
+        lesson.controller(track, "writing", "voice")
+
+
+def test_text_rule_is_dropped_when_empty_and_kept_for_japanese():
+    assert "kanji" in lesson.controller(tracks.load(TRACKS / "ja-first-steps"), "writing")
+    spanish = lesson.controller(tracks.load(TRACKS / "es-travel"), "writing")
+    assert "\n- \n" not in spanish and "stress" not in spanish
 
 
 def test_spanish_controller_uses_spanish_phrases_and_drops_empty_rules():

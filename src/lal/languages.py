@@ -27,6 +27,7 @@ class Language:
     ack: list[str]
     interference: str
     stress_rule: str
+    text_rule: str
     start_spoken: str
     checks: list[str]
     builtin: bool
@@ -39,6 +40,7 @@ class Language:
             ack=" or ".join(f"«{a}»" for a in self.ack),
             interference=f", or the learner uses {self.interference}" if self.interference else "",
             stress_rule=self.stress_rule,
+            text_rule=self.text_rule,
         )
         return values
 
@@ -56,6 +58,7 @@ def parse(raw: dict, builtin: bool, origin: str) -> Language:
         ack=list(raw["ack"]),
         interference=raw.get("interference", ""),
         stress_rule=raw.get("stress_rule", ""),
+        text_rule=raw.get("text_rule", ""),
         start_spoken=raw.get("start_spoken", raw["start"]),
         checks=list(raw.get("checks", [])) if builtin else [],
         builtin=builtin,

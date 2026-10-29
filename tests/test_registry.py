@@ -27,7 +27,7 @@ def test_pack_is_reproducible(tmp_path):
 
 def test_index_lists_every_track(dist):
     index = json.loads((dist / "tracks-index.json").read_text(encoding="utf-8"))
-    assert {e["id"] for e in index["tracks"]} == {"uk-reactivation", "es-travel", "es-smalltalk"}
+    assert {e["id"] for e in index["tracks"]} == {p.name for p in TRACKS.iterdir()}
     for e in index["tracks"]:
         assert hashlib.sha256((dist / e["archive"]).read_bytes()).hexdigest() == e["sha256"]
 

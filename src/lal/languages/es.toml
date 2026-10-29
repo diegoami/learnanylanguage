@@ -18,6 +18,8 @@ correction = "Corrección:"
 interference = ""
 # Spanish spelling already shows irregular stress; no pedagogical marks.
 stress_rule = ""
+# Rule for text lessons (COMMON text), like stress_rule for voice.
+text_rule = ""
 
 start_spoken = "Empecemos"
 checks = ["es_punctuation"]

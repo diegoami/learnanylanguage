@@ -142,8 +142,10 @@ def channel_for(mode: str, channel: str | None = None) -> str:
 def controller(track: tracks.Track, mode: str, channel: str | None = None) -> str:
     channel = channel_for(mode, channel)
     values = values_for(track, track.language)
-    common = "COMMON" if channel == "voice" else "COMMON text"
-    close = "CLOSE report" if mode in REPORT_MODES else "CLOSE"
+    if mode in REPORT_MODES:
+        common, close = f"COMMON {channel}", "CLOSE report"
+    else:
+        common, close = "COMMON", "CLOSE"
     return "\n\n".join([block(common, values), block(f"MODE {mode}", values), block(close, values)])
 
 

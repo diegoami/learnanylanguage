@@ -17,7 +17,9 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-BLOCK = re.compile(r"LESSON_REPORT\b(.*?)\bEND_LESSON_REPORT", re.S)
+# A marker is a line of its own, perhaps after the `**Teacher** (text): ` prefix
+# that `lal share` writes and inside the Markdown a chat reply may add.
+MARKER = re.compile(r"^(?:\*\*Teacher\*\* \((?:voice|text)\):)?[\s*`#]*(END_)?LESSON_REPORT[\s*`]*$")
 SECTIONS = {"items": "Items:", "corrections": "Corrections:", "words": "Words given by the teacher:"}
 # Report outcome → the tracker's evidence label (workflows/record.md).
 EVIDENCE = {
@@ -48,8 +50,24 @@ def clean(line: str) -> str:
 
 
 def extract(text: str) -> str | None:
-    """The body of the last LESSON_REPORT block in the text, or None."""
-    found = [m.group(1) for m in BLOCK.finditer(text) if "<Item number" not in m.group(1)]
+    """The body of the last LESSON_REPORT block in the text, or None.
+
+    Only marker lines count, so a mention of LESSON_REPORT in a transcript's
+    header or in a turn never starts a block; the empty template a package
+    carries is skipped.
+    """
+    found = []
+    body: list[str] | None = None
+    for line in text.splitlines():
+        marker = MARKER.match(line.strip())
+        if marker and not marker.group(1):
+            body = []
+        elif marker and body is not None:
+            found.append("\n".join(body))
+            body = None
+        elif body is not None:
+            body.append(line)
+    found = [b for b in found if "<Item number" not in b]
     return found[-1] if found else None
 
 

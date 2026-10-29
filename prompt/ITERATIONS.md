@@ -33,8 +33,9 @@ one at a time and record them in the transcript's test-settings block.
 Each check is marked **pass**, **fail**, or **n/a** from the transcript alone,
 for the modes listed (R = repetition, G = guided conversation, F = free
 conversation, D = grammar drill, V = vocabulary drill, W = writing). Cite the
-turn that shows a failure. In text lessons C11 and C13 read “text
-formatting” and “a cut-off answer gets «go on»”.
+turn that shows a failure. In text lessons C13 reads “a cut-off answer gets
+«go on»”. The LESSON_REPORT reply after «REPORT» is judged by C23 only, not
+by C7, C10 or C11.
 
 | ID | Modes | Check | Passes when |
 | --- | --- | --- | --- |
@@ -47,8 +48,8 @@ formatting” and “a cut-off answer gets «go on»”.
 | C7 | R G F D V | Short turns | Teacher turns are one or two sentences with at most one question. |
 | C8 | G | Correction routine | Important errors get the profile's correction marker (uk «Виправлення:», es «Corrección:»), chunk repetition, full sentence, and later reuse with one changed detail; valid sentences that differ from the step are accepted. |
 | C9 | R | Recall | Each recall prompt is asked without a model or cue before the learner's first attempt, and followed by its answer Line. |
-| C10 | R G F D V W | Target language first | English only when asked or after two failed explanations in the target language. |
-| C11 | R G F D V W | Voice formatting | No markdown, lists, emoji, labels, or spoken line or step numbers. |
+| C10 | R G F D V W | Target language first | English only when asked or after two failed explanations in the target language. D V W also allow the English their MODE requires: a vocabulary prompt written in English in the brief, given exactly as written; writing's correction reasons; a one-sentence grammar explanation the learner asked for. |
+| C11 | R G F D V W | Formatting | Voice: no markdown, lists, emoji, labels, or spoken line or step numbers. Text: no headings, tables, bold text or emoji; lists only where MODE requires them (writing's useful language and corrections). |
 | C12 | R G F D V W | Clean close | The closing sentence is used; no summary, scores, or tracker content, even when asked (D V W: only the LESSON_REPORT, and only after «REPORT»). |
 | C13 | R G F D V | Recognition repair | Garbled or cut-off learner turns get a repeat/continue request, not a grammar correction. |
 | C14 | G | Attempt before model | The learner gets to try first; if stuck, a partial cue comes before the full target sentence. |
@@ -110,6 +111,9 @@ Test results: pending (no runs yet in any language).
 
 New, all marked experimental:
 
+- **COMMON voice**: the voice COMMON for the experimental modes, which
+  lets MODE and CLOSE take precedence (English vocabulary prompts and
+  correction reasons, the report). The original modes keep COMMON.
 - **COMMON text**: the same rules for a lesson typed in an ordinary ChatGPT
   chat (TEXT_SESSION_PACKAGE, ready sentence «Ready for text. Write … to
   begin.»), with a `text_rule` placeholder from the language profile (Polish
@@ -147,3 +151,8 @@ without romaji.
 
 Roll back: remove the new blocks and modes; nothing in the original modes
 depends on them.
+
+Revised before release (milestone 0.2.0 review, PR #1): COMMON voice added
+and COMMON text given the same precedence sentence (#3); C10 and C11 adapted
+to the English and lists these modes require, and the report excluded from
+them (#4). No lesson had used the earlier g3 text, so the version stays g3.

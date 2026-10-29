@@ -1,4 +1,4 @@
-from lal import report
+from lal import lesson, report
 
 TRANSCRIPT = """\
 **Teacher** (voice): Lekcja skończona.
@@ -41,3 +41,21 @@ def test_report_flags_scores_and_missing_sections():
 def test_the_template_in_a_package_is_not_a_report():
     template = "LESSON_REPORT\nItems:\n- <Item number, word, or text>: …\nEND_LESSON_REPORT\n"
     assert report.extract(template) is None
+
+
+def test_a_report_inside_the_generated_transcript_reads_as_a_bare_one():
+    """Issue #2: the template's note mentions LESSON_REPORT and must not start a block."""
+    header = lesson.TRANSCRIPT_TEMPLATE.format(
+        track="pl-first-steps", label="1", mode="grammar drill", version="g3",
+        language="Polish", channel="text", report=lesson.REPORT_NOTE)
+    assert "LESSON_REPORT" in header
+    turns = "**Teacher** (text): Proszę powiedzieć to w czasie przeszłym.\n\n**Learner** (text): Czytałem.\n\n"
+    bare = report.parse(report.extract(TRANSCRIPT))
+    wrapped = report.parse(report.extract(header + turns + TRANSCRIPT))
+    assert wrapped[1:] == bare[1:] == ([], [])
+    assert wrapped[0] == bare[0]
+
+
+def test_the_last_of_several_reports_wins():
+    second = TRANSCRIPT.replace("Mode: grammar drill", "Mode: vocabulary drill")
+    assert report.parse(report.extract(TRANSCRIPT + second))[0].mode == "vocabulary drill"

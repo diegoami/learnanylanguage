@@ -42,6 +42,17 @@ def test_modes_pick_their_common_and_close_blocks(mode, channel, common, close):
     assert "{{" not in text and "Polish" in text
 
 
+def test_experimental_voice_modes_let_mode_and_close_override_common():
+    """Issue #3: English prompts and the report must not contradict the voice COMMON."""
+    track = tracks.load(TRACKS / "pl-first-steps")
+    drill = lesson.controller(track, "vocabulary", "voice")
+    assert "Use English only where MODE or CLOSE allows it" in drill
+    assert "follow MODE or CLOSE" in drill
+    assert "progress, summaries, or" not in drill
+    guided = lesson.controller(track, "guided")
+    assert "Use English only when the learner asks" in guided and "progress, summaries, or" in guided
+
+
 def test_channels_are_limited_per_mode():
     track = tracks.load(TRACKS / "es-travel")
     with pytest.raises(ValueError, match="run in voice"):

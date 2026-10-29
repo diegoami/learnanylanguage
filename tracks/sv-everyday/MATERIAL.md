@@ -65,8 +65,10 @@ Swedish uses **du** with almost everyone, so the whole track does.
 
 ## Grammar — present tense and verb-second order
 
-The present tense ends in **-r** and is the same for every person:
-*jag bor, du bor, hon bor, vi bor*. Questions put the verb first (*Bor du
+Most present-tense forms end in **-r**, and every form is the same for
+every person: *jag bor, du bor, hon bor, vi bor*. A few common verbs have no
+**-r**; you already meet them in this track: *kan* (can: *Kan du säga det
+igen?*), *ska* (will, shall), *vill* (want), *vet* (know). Questions put the verb first (*Bor du
 här?*) or right after a question word (*Var bor du?*).
 
 | Infinitive | Present | Example |

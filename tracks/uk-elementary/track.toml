@@ -1,0 +1,40 @@
+id = "uk-elementary"
+version = "1.0.0"
+language = "uk"
+title = "Ukrainian A1–A2 in 27 topics"
+description = "Elementary Ukrainian (A1–A2) in 27 sessions that follow the topic map of Є-мова's free course «Українська за 27 уроків»: three phonetics sessions, then one vocabulary theme and one grammar point per session. Original material with verified stress marks; published in blocks (sessions 1–6 now, the rest planned in PLAN.md)."
+source = "Ukrainian elementary"
+learner_context = "an adult working through elementary Ukrainian (A1–A2)"
+
+[[sessions]]
+number = 1
+title = "Alphabet and sound distinctions"
+focus = ["phonetics"]
+
+[[sessions]]
+number = 2
+title = "Vowels and stress"
+focus = ["phonetics"]
+
+[[sessions]]
+number = 3
+title = "Consonants"
+focus = ["phonetics"]
+
+[[sessions]]
+number = 4
+title = "Getting to know someone"
+parts = ["A", "B"]
+focus = ["vocabulary", "grammar", "conversation"]
+
+[[sessions]]
+number = 5
+title = "Greetings, addressing people, polite formulas"
+parts = ["A", "B"]
+focus = ["vocabulary", "grammar", "conversation"]
+
+[[sessions]]
+number = 6
+title = "Time, days and months"
+parts = ["A", "B"]
+focus = ["vocabulary", "grammar"]

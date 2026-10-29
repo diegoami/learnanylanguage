@@ -24,6 +24,7 @@ This generalises the Ukrainian practice in
 | [`uk-reactivation`](tracks/uk-reactivation/) | Ukrainian | 7 | Reactivation after a Pimsleur-style Level 1; ported from learnukrainian with verified stress marks |
 | [`es-travel`](tracks/es-travel/) | Spanish | 3 | A first trip: greetings, café and paying, directions and transport (usted) |
 | [`es-smalltalk`](tracks/es-smalltalk/) | Spanish | 2 | Informal chat with friends: yourself and your likes, the weekend and plans (tú) |
+| [`uk-elementary`](tracks/uk-elementary/) | Ukrainian | 6 of 27 | A1–A2 following the topic map of Є-мова's «Українська за 27 уроків»: phonetics, then one vocabulary theme and one grammar point per session (sessions 7–27 planned) |
 | [`uk-advanced`](tracks/uk-advanced/) | Ukrainian | 3 | Towards an advanced level: opinions and polite disagreement, telling a story (aspect), news and society (-но/-то forms) |
 | [`sv-everyday`](tracks/sv-everyday/) | Swedish | 3 | Everyday Swedish (du): introductions, fika and likes, the weekend and plans |
 | [`pl-first-steps`](tracks/pl-first-steps/) | Polish | 3 | A first stay in Poland (pan/pani): introductions, café and paying, directions and transport |
@@ -95,6 +96,7 @@ Switch language or track at any time: `lal start uk-reactivation`,
 | `lal report FILE` | check a LESSON_REPORT and print it with evidence labels |
 | `lal gui [--data DIR\|GIT_URL]` | read and evaluate progress in a local web page |
 | `lal web` | run lessons in a local page: hand-off to ChatGPT, or your own keys |
+| `lal companion` | write `COMPANION.md`: what was covered, each lesson's transcript, what comes next |
 
 Configuration: `lal.toml` (see [lal.example.toml](lal.example.toml)) or
 `LAL_HOME`, `LAL_DATA`, `LAL_TRACK_PATH`, `LAL_CONFIG`.
@@ -139,6 +141,21 @@ Keys are entered in the page's Settings, kept in that browser only, and sent
 only to their provider; the `lal` server never sees them. Transcripts are
 written in the format `lal share` produces, so recording works unchanged.
 Why these teachers, and what was left out: [docs/teachers.md](docs/teachers.md).
+
+## The companion
+
+`lal companion` writes `COMPANION.md` into the learner data: per started
+track, where you are (sessions, their focus, status, next), every lesson
+with what it practised and a link to its transcript (or how to supply a
+missing one), the sessions coming next with their "you should be able to"
+lists, sessions planned but not yet written, and the review queue. It does
+not depend on the route a lesson took; the prepare and record workflows
+and `lal web` regenerate it, and `lal web` shows it in its Companion tab.
+Every lesson keeps its full transcript in its folder: a ChatGPT share link,
+a pasted conversation, or the page's own record.
+
+Sessions can carry a `focus` (phonetics, vocabulary, grammar, conversation,
+writing) that suggests their modes; see [docs/TRACK_FORMAT.md](docs/TRACK_FORMAT.md).
 
 ## Reading your progress
 

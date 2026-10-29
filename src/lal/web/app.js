@@ -151,13 +151,22 @@ async function teacherTurn(ready = false) {
   setStatus("The teacher is thinking…");
   const text = await askTeacher();
   turns.push({ who: "teacher", text, channel: teacher === "voice" && !ready ? "voice" : "text", ready });
+  keepDraft();
   renderLog();
+  const askedReport = turns.length > 1 && turns[turns.length - 2].text.trim() === "REPORT";
+  const finished = core.isClose(text, lesson.info.close) && !/drill|writing/.test(lesson.info.mode);
+  if (!ready && (finished || askedReport) && lesson.folder && server && !lesson.recorded) {
+    await say(text);
+    await save(); // the transcript is never left only in the page
+    return;
+  }
   if (!ready) { setStatus(teacher === "voice" ? "The teacher is speaking…" : ""); await say(text); }
   setStatus(teacher === "voice" ? "Your turn: tap to talk." : "Your turn.");
 }
 
 async function learnerTurn(text, channel) {
   turns.push({ who: "learner", text, channel });
+  keepDraft();
   renderLog();
   await teacherTurn();
 }
@@ -238,26 +247,64 @@ async function readShare() {
   });
 }
 
+// --- the companion and the transcript viewer ------------------------------------------
+async function loadCompanion() {
+  if (!server) { $("companion").innerHTML = '<p class="muted">The companion needs <code>lal web</code> (it reads the learner data). Otherwise open COMPANION.md in the learner data.</p>'; return; }
+  const data = await (await fetch("/api/companion")).json();
+  $("companion").innerHTML = core.markdownToHtml(data.markdown);
+}
+
+async function openFile(path) {
+  const response = await fetch(`/api/file?path=${encodeURIComponent(path)}`);
+  const text = await response.text();
+  $("viewerTitle").textContent = path;
+  $("viewerDoc").innerHTML = response.ok ? core.markdownToHtml(text) : `<p class="warn">${esc(text)}</p>`;
+  $("viewer").hidden = false;
+}
+
+async function savePasted() {
+  const text = $("pastedChat").value.trim();
+  if (!text) return;
+  const body = `Pasted conversation (not from a share link: check for lost turns)\n\n${text}`;
+  if (!(lesson.folder && server)) { download(body); return; }
+  await guarded(async () => {
+    const response = await fetch("/api/transcript", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ track: lesson.track, folder: lesson.folder, body, model: "ChatGPT (pasted conversation)" }) });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error);
+    setStatus(`Saved in ${data.saved}. Hand it to the agent to record.`);
+    lesson.recorded = true; loadLessons();
+  });
+}
+
 // --- saving -----------------------------------------------------------------------
+const draftKey = () => lesson?.folder ? `lal.web.draft.${lesson.track}/${lesson.folder}` : "lal.web.draft.pasted";
+function keepDraft() {
+  try { localStorage.setItem(draftKey(), JSON.stringify({ turns, models: [...models], started, teacher })); } catch { /* private mode */ }
+}
+function dropDraft() { try { localStorage.removeItem(draftKey()); } catch { /* private mode */ } }
+
+function download(body) {
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob([body + "\n"], { type: "text/markdown" }));
+  link.download = "transcript.md";
+  link.click();
+}
+
 async function save() {
   const body = core.transcript(lesson.info, turns, {
     teacher: teacher === "voice" ? `own keys, voice (ElevenLabs + ${core.PROVIDERS[settings.provider].label})` : `own keys, typed (${core.PROVIDERS[settings.provider].label})`,
     models: [...models], started, ended: core.utc(),
   });
-  if (lesson.folder && server) {
-    await guarded(async () => {
-      const response = await fetch("/api/transcript", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ track: lesson.track, folder: lesson.folder, body, model: [...models].join(", ") }) });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
-      setStatus(`Saved in ${data.saved}. Hand it to the agent to record.`);
-      lesson.recorded = true; loadLessons();
-    });
+  if (lesson.folder && server && !lesson.recorded) {
+    const response = await fetch("/api/transcript", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ track: lesson.track, folder: lesson.folder, body, model: [...models].join(", ") }) });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error);
+    setStatus(`Saved in ${data.saved}. Hand it to the agent to record.`);
+    lesson.recorded = true; dropDraft(); loadLessons();
   } else {
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(new Blob([body + "\n"], { type: "text/markdown" }));
-    link.download = "transcript.md";
-    link.click();
+    download(body);
   }
 }
 
@@ -267,7 +314,9 @@ function init() {
   document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => {
     document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x === b));
     $("lessonView").hidden = b.dataset.view !== "lesson";
+    $("companionView").hidden = b.dataset.view !== "companion";
     $("settingsView").hidden = b.dataset.view !== "settings";
+    if (b.dataset.view === "companion") loadCompanion();
   }));
   $("pasteBtn").addEventListener("click", () => useLesson($("pasteBox").value));
   $("fileInput").addEventListener("change", async e => { const f = e.target.files[0]; if (f) useLesson(await f.text()); });
@@ -280,7 +329,14 @@ function init() {
   $("talkBtn").addEventListener("click", () => talk().catch(e => showError(`Microphone: ${e.message}`)));
   $("againBtn").addEventListener("click", () => lastAudio && play(lastAudio));
   $("reportBtn").addEventListener("click", () => guarded(() => learnerTurn("REPORT", "text")));
-  $("saveBtn").addEventListener("click", save);
+  $("saveBtn").addEventListener("click", () => guarded(save));
+  $("pastedBtn").addEventListener("click", savePasted);
+  $("companionRefresh").addEventListener("click", loadCompanion);
+  $("viewerClose").addEventListener("click", () => { $("viewer").hidden = true; });
+  document.addEventListener("click", e => {
+    const a = e.target.closest("a[data-file]");
+    if (a) { e.preventDefault(); openFile(a.dataset.file); }
+  });
   toggleControls();
   loadLessons();
 }

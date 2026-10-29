@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import re
 import tomllib
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from . import languages
@@ -31,6 +31,8 @@ from .config import Config
 REQUIRED_FILES = ("track.toml", "README.md", "OPENINGS.md", "MATERIAL.md", "PLAN.md", "TRACKER.md")
 ALLOWED_SUFFIXES = {".md", ".toml", ".json", ".txt"}
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,62}$")
+# What a session concentrates on; shown in the companion and used to suggest modes.
+FOCUS = ("phonetics", "vocabulary", "grammar", "conversation", "writing")
 VERSION_RE = re.compile(r"^\d+\.\d+\.\d+$")
 
 
@@ -39,6 +41,7 @@ class Session:
     number: int
     title: str
     parts: list[str]
+    focus: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -107,7 +110,8 @@ def load(directory: Path) -> Track:
                if k not in raw]
     if missing:
         raise ValueError(f"{directory}/track.toml lacks {', '.join(missing)}")
-    sessions = [Session(int(s["number"]), s["title"], [p.upper() for p in s.get("parts", [])])
+    sessions = [Session(int(s["number"]), s["title"], [p.upper() for p in s.get("parts", [])],
+                        list(s.get("focus", [])))
                 for s in raw["sessions"]]
     phrases = dict(raw.get("phrases", {}))
     unknown = sorted(set(phrases) - set(languages.PHRASES))
@@ -143,6 +147,9 @@ def validate(directory: Path) -> list[str]:
         errors.append(str(error))
     material = track.read("MATERIAL.md")
     for s in track.sessions:
+        unknown = sorted(set(s.focus) - set(FOCUS))
+        if unknown:
+            errors.append(f"session {s.number}: unknown focus {', '.join(unknown)} (allowed: {', '.join(FOCUS)})")
         try:
             title, _, _ = track.opening(s.number)
         except ValueError as error:

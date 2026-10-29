@@ -40,6 +40,12 @@ This repository is model-agnostic: it is maintained with any coding agent.
   config file in a repository, or a commit: keys live in the learner's
   browser (`lal web` Settings) or environment.
 
+Every lesson keeps its full transcript in its lesson folder, whatever the
+route (a ChatGPT share link or pasted conversation, or `lal web`), and
+`COMPANION.md` in the learner data (`lal companion`) lists what has been
+covered, each lesson's transcript, and what comes next. Regenerate it
+whenever a lesson is prepared or recorded.
+
 The chat must not create scores, assessments, or tracker updates; the agent
 extracts practice from the raw conversation. One experimental exception: in
 the grammar, vocabulary and writing modes the learner may ask for a factual

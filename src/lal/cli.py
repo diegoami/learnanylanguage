@@ -9,7 +9,7 @@ import re
 import sys
 from pathlib import Path
 
-from . import __version__, checks, config, gui, languages, learner, lesson, registry, report, share, tracks, web
+from . import __version__, checks, companion, config, gui, languages, learner, lesson, registry, report, share, tracks, web
 
 
 def fail(message: str) -> int:
@@ -246,6 +246,14 @@ def cmd_gui(cfg, args):
     return 0
 
 
+def cmd_companion(cfg, args):
+    if args.stdout:
+        print(companion.markdown(companion.build(cfg)), end="")
+    else:
+        print(companion.write(cfg))
+    return 0
+
+
 def cmd_web(cfg, args):
     web.serve(cfg, args.port, not args.no_browser)
     return 0
@@ -349,6 +357,10 @@ def parser() -> argparse.ArgumentParser:
     gu.add_argument("--no-browser", action="store_true", help="only print the address")
     gu.add_argument("--pull", action="store_true", help="git pull --ff-only before reading, and allow it from the page")
     gu.set_defaults(fn=cmd_gui)
+
+    co = sub.add_parser("companion", help="write COMPANION.md: what was covered and what comes next")
+    co.add_argument("--stdout", action="store_true", help="print instead of writing the file")
+    co.set_defaults(fn=cmd_companion)
 
     we = sub.add_parser("web", help="run lessons in a local page: ChatGPT hand-off, or your own keys")
     we.add_argument("--port", type=int, default=8772, help="port on 127.0.0.1 (0 = any free port)")

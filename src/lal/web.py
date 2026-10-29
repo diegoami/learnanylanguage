@@ -27,7 +27,7 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from . import __version__, learner, progress, share
+from . import __version__, companion, learner, progress, share
 from .config import Config
 
 STATIC = Path(__file__).resolve().parent / "web"
@@ -109,6 +109,11 @@ def handler(cfg: Config, origin: str) -> type[BaseHTTPRequestHandler]:
                     self.json({"server": "lal", "version": __version__, "data": str(cfg.data_dir)})
                 elif url.path == "/api/lessons":
                     self.json(lessons(cfg))
+                elif url.path == "/api/companion":
+                    self.json({"markdown": companion.markdown(companion.build(cfg))})
+                elif url.path == "/api/file":
+                    text = progress.read_file(cfg.data_dir, query.get("path", [""])[0])
+                    self.send(200, text.encode("utf-8"), "text/plain; charset=utf-8")
                 elif url.path == "/api/lesson":
                     path = folder(cfg, query.get("track", [""])[0], query.get("folder", [""])[0])
                     transcript = path / "transcript.md"
@@ -137,6 +142,7 @@ def handler(cfg: Config, origin: str) -> type[BaseHTTPRequestHandler]:
                 if url == "/api/transcript":
                     path = folder(cfg, data.get("track", ""), data.get("folder", ""))
                     write_transcript(path, str(data.get("body", "")), str(data.get("model", "")))
+                    companion.write(cfg)
                     self.json({"saved": str(path.relative_to(cfg.data_dir) / "transcript.md")})
                 elif url == "/api/share":
                     link = str(data.get("url", ""))
@@ -149,6 +155,7 @@ def handler(cfg: Config, origin: str) -> type[BaseHTTPRequestHandler]:
                     if path:
                         write_transcript(path, f"Share link: {link}\n\n{text}", "ChatGPT (from the share link)")
                         saved = str(path.relative_to(cfg.data_dir) / "transcript.md")
+                        companion.write(cfg)
                     self.json({"transcript": text, "saved": saved})
                 else:
                     self.json({"error": "not found"}, 404)

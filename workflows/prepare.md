@@ -23,6 +23,9 @@ and a session and part, e.g. `es-travel guided 2B` or `pl-first-steps grammar
    repetition lesson, one guided lesson per part, then one free conversation.
    Grammar, vocabulary and writing lessons are extras the user asks for (or
    that the track's `PLAN.md` suggests under **Drills**); they need no part.
+   A session's `focus` in `track.toml` suggests its modes: phonetics →
+   repetition (minimal pairs and stress; pronunciation is never judged),
+   vocabulary → vocabulary drill, grammar → grammar drill.
    Grammar and vocabulary run in voice by default; offer `text` when the user
    wants to practise spelling or script. Writing is always text.
    Read the track's `README.md` for track-specific rules (for example, a
@@ -96,8 +99,10 @@ and a session and part, e.g. `es-travel guided 2B` or `pl-first-steps grammar
 6. **Clipboard.** `lal lesson copy <package.md>`. If no clipboard tool is
    available, tell the user to open the file and copy it. Never hand over the
    brief alone: the voice chat needs its instructions in the same paste.
-7. **Commit** the lesson folder in the learner data repository, if it is
-   one, with a message like `es-travel: prepare Session 2B guided package
+7. **Companion and commit.** Run `lal companion` (it rewrites
+   `<data>/COMPANION.md`: covered, prepared, coming next). Commit the lesson
+   folder and `COMPANION.md` in the learner data repository, if it is one,
+   with a message like `es-travel: prepare Session 2B guided package
    (prompt g3)`. Do not touch the tracker or the queue: a prepared package
    is not progress.
 8. **Tell the user**, briefly: the folder, the mode, the channel and what it

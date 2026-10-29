@@ -100,3 +100,44 @@ export function transcript(info, turns, meta) {
 export function utc(date = new Date()) {
   return date.toISOString().slice(0, 16).replace("T", " ");
 }
+
+const escapeHtml = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function inline(text) {
+  return escapeHtml(text)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, label, href) => /^https?:/.test(href)
+      ? `<a href="${href}" target="_blank" rel="noopener">${label}</a>`
+      : `<a href="#" data-file="${href}">${label}</a>`);
+}
+
+/** A small Markdown renderer for the companion and transcripts: headings, tables, lists, paragraphs, links. */
+export function markdownToHtml(text) {
+  const out = [], lines = text.replace(/\r/g, "").split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^<!--.*-->$/.test(line.trim())) continue;
+    if (/^#{1,6} /.test(line)) {
+      const n = line.match(/^#+/)[0].length;
+      out.push(`<h${n}>${inline(line.slice(n + 1))}</h${n}>`);
+    } else if (line.trim().startsWith("|")) {
+      const rows = [];
+      while (i < lines.length && lines[i].trim().startsWith("|")) rows.push(lines[i++]);
+      i--;
+      const cells = r => r.trim().replace(/^\||\|$/g, "").split(/(?<!\\)\|/).map(c => c.trim().replace(/\\\|/g, "|"));
+      out.push(`<div class="scroll"><table><tr>${cells(rows[0]).map(c => `<th>${inline(c)}</th>`).join("")}</tr>${
+        rows.slice(2).map(r => `<tr>${cells(r).map(c => `<td>${inline(c)}</td>`).join("")}</tr>`).join("")}</table></div>`);
+    } else if (/^\s*- /.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\s*- /.test(lines[i])) items.push(lines[i++].replace(/^\s*- (\[[ x]\] )?/, ""));
+      i--;
+      out.push(`<ul>${items.map(x => `<li>${inline(x)}</li>`).join("")}</ul>`);
+    } else if (/^---+\s*$/.test(line)) {
+      out.push("<hr>");
+    } else if (line.trim()) {
+      out.push(`<p>${inline(line)}</p>`);
+    }
+  }
+  return out.join("\n");
+}

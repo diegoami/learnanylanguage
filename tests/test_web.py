@@ -76,3 +76,20 @@ def test_share_links_are_read_by_the_server(site, monkeypatch):
     assert "Lekcja skończona." in result["transcript"] and result["saved"]
     text = (folder / "transcript.md").read_text(encoding="utf-8")
     assert f"Share link: {link}" in text and "- Model: ChatGPT (from the share link)" in text
+
+
+def test_companion_and_files_are_served(site):
+    origin, folder = site
+    data = json.loads(get(origin + "/api/companion")[1])
+    assert data["markdown"].startswith("# Companion") and "Polish first steps" in data["markdown"]
+    _, body = get(f"{origin}/api/file?path=tracks/pl-first-steps/sessions/{folder.name}/package.md")
+    assert body.startswith(b"TEXT_SESSION_PACKAGE")
+    assert status(lambda: get(origin + "/api/file?path=../../etc/passwd")) == 403
+
+
+def test_saving_a_transcript_rewrites_the_companion(site):
+    origin, folder = site
+    post(origin + "/api/transcript", {"track": "pl-first-steps", "folder": folder.name,
+                                      "body": "**Learner** (text): Zaczynamy"}, origin)
+    companion_file = folder.parents[3] / "COMPANION.md"
+    assert f"sessions/{folder.name}/transcript.md" in companion_file.read_text(encoding="utf-8")

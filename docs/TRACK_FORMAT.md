@@ -34,7 +34,17 @@ repeat_please = "Repite, por favor."
 number = 1                       # any integers; packages are named after them
 title = "Greetings and getting by"   # must equal the OPENINGS.md heading
 parts = ["A", "B"]               # guided lessons need one of these
+focus = ["vocabulary", "grammar"]  # optional: phonetics, vocabulary, grammar, conversation, writing
 ```
+
+`focus` says what a session concentrates on. `lal companion` shows it, and the
+prepare workflow suggests modes from it: phonetics → repetition (minimal
+pairs, stress), vocabulary → vocabulary drill, grammar → grammar drill,
+conversation → guided and free, writing → writing.
+
+`PLAN.md` may describe sessions that are not written yet (no `[[sessions]]`
+entry, no OPENINGS or MATERIAL section): the companion lists them as
+planned, so a long series can be published in blocks.
 
 Overridable phrases: `start`, `close`, `english_please`, `repeat_please`,
 `go_on`, `stop`, `listen_repeat`, `now_you`, `correction`.

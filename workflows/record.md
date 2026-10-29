@@ -95,8 +95,9 @@ audio notes from the test-settings block, folder).
 
 ## 4. Commit and report
 
-Commit the transcript, tracker, queue and teacher-runs row together in the
-learner data repository, e.g. `es-travel: record Session 2B guided lesson
+Run `lal companion` so `COMPANION.md` shows the lesson, its transcript and
+what comes next. Commit the transcript, tracker, queue, teacher-runs row and
+`COMPANION.md` together in the learner data repository, e.g. `es-travel: record Session 2B guided lesson
 (prompt g3)`. Report briefly: coverage change, new or updated queue targets,
 failed checks, the suggested next lesson, and whether iterating the prompt
 ([iterate.md](iterate.md)) is worth it: recommend it when a check fails in a

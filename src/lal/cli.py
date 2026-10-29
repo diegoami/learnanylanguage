@@ -9,7 +9,7 @@ import re
 import sys
 from pathlib import Path
 
-from . import __version__, checks, config, gui, languages, learner, lesson, registry, report, share, tracks
+from . import __version__, checks, config, gui, languages, learner, lesson, registry, report, share, tracks, web
 
 
 def fail(message: str) -> int:
@@ -246,6 +246,11 @@ def cmd_gui(cfg, args):
     return 0
 
 
+def cmd_web(cfg, args):
+    web.serve(cfg, args.port, not args.no_browser)
+    return 0
+
+
 def cmd_share(cfg, args):
     if not (args.url or args.html):
         return fail("give a share URL or --html")
@@ -344,6 +349,11 @@ def parser() -> argparse.ArgumentParser:
     gu.add_argument("--no-browser", action="store_true", help="only print the address")
     gu.add_argument("--pull", action="store_true", help="git pull --ff-only before reading, and allow it from the page")
     gu.set_defaults(fn=cmd_gui)
+
+    we = sub.add_parser("web", help="run lessons in a local page: ChatGPT hand-off, or your own keys")
+    we.add_argument("--port", type=int, default=8772, help="port on 127.0.0.1 (0 = any free port)")
+    we.add_argument("--no-browser", action="store_true", help="only print the address")
+    we.set_defaults(fn=cmd_web)
 
     sh = sub.add_parser("share", help="read a ChatGPT share link as a transcript")
     sh.add_argument("url", nargs="?")

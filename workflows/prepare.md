@@ -116,3 +116,8 @@ and a session and part, e.g. `es-travel guided 2B` or `pl-first-steps grammar
       transcript stays the evidence.
    4. Afterwards share the chat, copy the link, and hand it back to be
       recorded ([record.md](record.md)).
+
+   Or run it in `lal web`: the page lists the prepared lesson, offers the
+   same ChatGPT hand-off (and reads the share link itself), or runs it with
+   the learner's own keys, typed or in voice, and saves the transcript into
+   the lesson folder.

@@ -7,6 +7,14 @@ link, a pasted conversation, or a folder). `<data>` is the learner data folder
 Input (optional): a share link, a lesson folder, or a transcript path.
 Default: the newest folder of the current track.
 
+If `lal web` ran the lesson, the transcript is already in the folder: with a
+`Share link:` line (ChatGPT; the page saved the share-page package as
+`shared-package.md` for the comparison below) or with a header naming the
+teacher and models (own keys). Use it as the raw transcript and go to step
+1b. In the teacher-runs row, write the teacher and model in the Model column
+(e.g. `own keys, voice: google/gemini-3.8-flash`); in voice lessons with own
+keys, the learner's turns are ElevenLabs Scribe's recognition.
+
 ## 1. Get the raw transcript
 
 - **Share link** (`https://chatgpt.com/share/...`):

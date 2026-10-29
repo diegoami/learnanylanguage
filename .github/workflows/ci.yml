@@ -13,4 +13,5 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: uv sync
       - run: uv run pytest -q
+      - run: node --test tests/web/*.test.mjs
       - run: uv run lal track validate tracks/*

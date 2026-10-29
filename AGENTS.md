@@ -14,7 +14,7 @@ This repository is model-agnostic: it is maintained with any coding agent.
 
 | Layer | Where | What |
 | --- | --- | --- |
-| Engine | `src/lal/` (CLI `lal`) | controller template, package builder and checker, track registry, language profiles and checks, the read-only progress page (`lal gui`) |
+| Engine | `src/lal/` (CLI `lal`) | controller template, package builder and checker, track registry, language profiles and checks, the read-only progress page (`lal gui`), the lesson client (`lal web`) |
 | Tracks | `tracks/<id>/` here (source); installed copies in the tracks folder | data-only lesson content for one language: `track.toml`, `OPENINGS.md`, `MATERIAL.md`, `PLAN.md`, `TRACKER.md`, `README.md` |
 | Learner data | `$LAL_DATA` / `data_dir` (`lal paths`) | profile, per-track trackers and lesson folders, per-language review queues, teacher runs |
 
@@ -33,7 +33,12 @@ This repository is model-agnostic: it is maintained with any coding agent.
   conversation, editing the learner data and running `lal`.
 - **ChatGPT teaches** from the pasted package, in ChatGPT Voice or, for
   text lessons, in a typed chat. It has no repository access; never tell the
-  user it can read or update anything.
+  user it can read or update anything. As an option, `lal web` runs the same
+  package with the learner's own keys (OpenRouter or Gemini, plus ElevenLabs
+  for voice); the teacher is recorded per lesson.
+- Never put a provider key in a track, a package, the learner data, a
+  config file in a repository, or a commit: keys live in the learner's
+  browser (`lal web` Settings) or environment.
 
 The chat must not create scores, assessments, or tracker updates; the agent
 extracts practice from the raw conversation. One experimental exception: in

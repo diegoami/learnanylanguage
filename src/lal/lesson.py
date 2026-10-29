@@ -192,6 +192,7 @@ def brief(cfg: Config, track: tracks.Track, mode: str, session: int, part: str,
         f"Mode: {MODES[mode]}",
         *([f"Channel: {channel}"] if mode in REPORT_MODES else []),
         f"Track: {track.id} {track.version} — {track.title}",
+        f"Language: {track.language_code} — {lang}",
         f"Session: {session} — {title}",
     ]
     who = f"Learner: {learner.learner_line(cfg, track.language_code)}"

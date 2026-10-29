@@ -94,6 +94,7 @@ Switch language or track at any time: `lal start uk-reactivation`,
 | `lal share URL` | read a ChatGPT share link as a transcript |
 | `lal report FILE` | check a LESSON_REPORT and print it with evidence labels |
 | `lal gui [--data DIR\|GIT_URL]` | read and evaluate progress in a local web page |
+| `lal web` | run lessons in a local page: hand-off to ChatGPT, or your own keys |
 
 Configuration: `lal.toml` (see [lal.example.toml](lal.example.toml)) or
 `LAL_HOME`, `LAL_DATA`, `LAL_TRACK_PATH`, `LAL_CONFIG`.
@@ -119,6 +120,25 @@ queues/<lang>.md                  shared by every track of a language
 tracks/<id>/TRACKER.md
 tracks/<id>/sessions/<date>-session-<N><part>-<mode>/{package,transcript}.md
 ```
+
+## Running lessons in `lal web`
+
+`lal web` opens a local page (on `127.0.0.1`, so no tunnel) that lists the
+prepared lessons in your learner data and runs one with the teacher you
+choose:
+
+- **ChatGPT**: the page copies the package; you paste it into ChatGPT (Voice
+  or typed), share the chat, and paste the share link back. `lal` reads it
+  and writes the transcript into the lesson folder.
+- **Your own keys, typed**: OpenRouter or Gemini answers in the page.
+- **Your own keys, voice**: tap to talk; ElevenLabs Scribe hears you (locked
+  to the lesson's language), OpenRouter or Gemini answers, ElevenLabs
+  Multilingual v2 speaks (with the brief's stress marks).
+
+Keys are entered in the page's Settings, kept in that browser only, and sent
+only to their provider; the `lal` server never sees them. Transcripts are
+written in the format `lal share` produces, so recording works unchanged.
+Why these teachers, and what was left out: [docs/teachers.md](docs/teachers.md).
 
 ## Reading your progress
 

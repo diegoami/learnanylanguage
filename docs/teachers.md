@@ -229,6 +229,14 @@ POC 1, POC 5 and architecture notes.
 
 ## The client: one app, the teacher chosen per lesson
 
+**Status (2026-10-29): built as `lal web`, served on `127.0.0.1`** with the
+owner's choice of teachers: ChatGPT (copy the package, paste the share link
+back; the server reads it) and own keys (OpenRouter or Gemini, typed; plus
+ElevenLabs for voice). "Sign in with ChatGPT" and hosting on GitHub Pages
+are not built. Tested with stubbed providers in a headless browser (fake
+microphone): request formats, language-locked recognition, transcript
+saving; not yet with real keys.
+
 Decided direction (2026-10-29): a **static web app** (installable on the
 phone) that runs `lal` packages with the teacher chosen per lesson. No
 server and no tunnel: voice-teacher needed a Cloudflare tunnel only because

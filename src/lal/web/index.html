@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Language Lessons</title>
+<style>
+:root { --bg: #f7f6f3; --panel: #fff; --ink: #1f2328; --muted: #646b73; --line: #e2e0da; --accent: #2f6f8f;
+  --teacher: #eef4f7; --learner: #f4f1e8; --warn: #b5523b; }
+@media (prefers-color-scheme: dark) { :root { --bg: #16181b; --panel: #1f2226; --ink: #e6e6e3; --muted: #9aa1a8;
+  --line: #33373c; --accent: #6fb0cf; --teacher: #233038; --learner: #302c22; --warn: #e07c63; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+header { padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+header h1 { font-size: 18px; margin: 0; flex: 1; }
+nav { display: flex; gap: 4px; }
+button, .btn { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button:disabled { opacity: .45; cursor: default; }
+nav button.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+main { max-width: 760px; margin: 0 auto; padding: 16px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+.card h2 { font-size: 16px; margin: 0 0 10px; }
+.muted { color: var(--muted); font-size: 14px; }
+.warn, #error { color: var(--warn); }
+#lessonList { display: grid; gap: 6px; max-height: 260px; overflow: auto; }
+.lesson { text-align: left; display: block; width: 100%; }
+.lesson small { display: block; color: var(--muted); font-size: 13px; }
+.lesson.done { opacity: .6; }
+textarea, input[type=text], input[type=password], select { width: 100%; font: inherit; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); }
+textarea { min-height: 90px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+.row > * { flex: 0 0 auto; }
+.grow { flex: 1 1 200px !important; }
+.choices label { display: block; padding: 6px 0; }
+#log { max-height: 50vh; overflow: auto; display: grid; gap: 8px; margin: 10px 0; }
+.turn { padding: 8px 10px; border-radius: 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.turn span { display: block; font-size: 12px; color: var(--muted); }
+.turn.teacher { background: var(--teacher); }
+.turn.learner { background: var(--learner); margin-left: 24px; }
+.turn.ready { opacity: .6; }
+#talkBtn { width: 100%; padding: 22px; font-size: 18px; }
+#status { min-height: 1.5em; }
+#shareResult { white-space: pre-wrap; max-height: 40vh; overflow: auto; font-size: 14px; }
+label.field { display: block; margin: 10px 0 4px; font-weight: 600; font-size: 14px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Language lessons</h1>
+  <nav><button class="on" data-view="lesson">Lesson</button><button data-view="settings">Settings</button></nav>
+</header>
+<main>
+<section id="lessonView">
+  <div class="card">
+    <h2>1. Choose a lesson</h2>
+    <div id="serverLessons" hidden>
+      <p class="muted">Prepared lessons in <span id="dataPath"></span> (not yet recorded first):</p>
+      <div id="lessonList"></div>
+    </div>
+    <details>
+      <summary class="muted">Or paste or open a package</summary>
+      <textarea id="pasteBox" placeholder="VOICE_SESSION_PACKAGE …"></textarea>
+      <div class="row"><button id="pasteBtn">Use the pasted package</button><input type="file" id="fileInput" accept=".md,.txt"></div>
+    </details>
+    <p id="lessonInfo" class="muted"></p>
+  </div>
+
+  <div class="card" id="teacherCard" hidden>
+    <h2>2. Choose the teacher</h2>
+    <div class="choices">
+      <label><input type="radio" name="teacher" value="chatgpt" checked> ChatGPT: copy the package, run it in ChatGPT (Voice or typed), paste the share link back</label>
+      <label><input type="radio" name="teacher" value="typed"> Own keys, typed: OpenRouter or Gemini</label>
+      <label><input type="radio" name="teacher" value="voice"> Own keys, voice: ElevenLabs (listening and speaking) + OpenRouter or Gemini <span id="voiceNote" class="muted"></span></label>
+    </div>
+
+    <div id="chatgptPanel">
+      <ol class="muted">
+        <li>Copy the package, open a new ChatGPT chat, paste it and send; ChatGPT answers only that it is ready.</li>
+        <li>Start voice (or type) and say the start command; do the lesson.</li>
+        <li>Share the chat, copy the link, paste it here.</li>
+      </ol>
+      <div class="row"><button class="primary" id="copyBtn">Copy the package</button><a class="btn" href="https://chatgpt.com/" target="_blank" rel="noopener">Open ChatGPT</a></div>
+      <div class="row"><input type="text" id="shareUrl" class="grow" placeholder="https://chatgpt.com/share/…"><button id="shareBtn">Read the shared chat</button></div>
+      <div id="shareResult" class="muted"></div>
+    </div>
+
+    <div id="ownPanel" hidden>
+      <p class="muted"><span id="startCmd"></span> <span id="ownMissing" class="warn"></span></p>
+      <button class="primary" id="startBtn">Start the lesson</button>
+      <div id="log"></div>
+      <div id="typeRow" class="row" hidden><textarea id="typeBox" class="grow" placeholder="Your answer (Enter sends)"></textarea><button id="sendBtn">Send</button></div>
+      <div id="voiceRow" hidden><button class="primary" id="talkBtn">Tap to talk</button><div class="row"><button id="againBtn">Hear again</button></div></div>
+      <div id="afterRow" class="row" hidden><button id="reportBtn" hidden>Ask for the report</button><button id="saveBtn">Save the transcript</button></div>
+    </div>
+    <p id="status" class="muted"></p>
+    <p id="error" hidden></p>
+  </div>
+</section>
+
+<section id="settingsView" hidden>
+  <div class="card">
+    <h2>Your keys</h2>
+    <p class="muted">Kept in this browser only (localStorage on this device) and sent only to their own provider. Use keys you can limit: an OpenRouter credit limit, an ElevenLabs key with only speech-to-text and text-to-speech.</p>
+    <label class="field" for="provider">Teacher model through</label>
+    <select id="provider"><option value="openrouter">OpenRouter</option><option value="gemini">Gemini (Google AI Studio key)</option></select>
+    <label class="field" for="model">Model</label>
+    <input type="text" id="model">
+    <label class="field" for="openrouterKey">OpenRouter key</label>
+    <input type="password" id="openrouterKey" autocomplete="off">
+    <label class="field" for="geminiKey">Gemini key</label>
+    <input type="password" id="geminiKey" autocomplete="off">
+    <label class="field" for="elevenlabsKey">ElevenLabs key (voice lessons)</label>
+    <input type="password" id="elevenlabsKey" autocomplete="off">
+    <label class="field" for="voice">ElevenLabs voice ID</label>
+    <input type="text" id="voice">
+    <div class="row"><button id="forget">Forget the keys</button></div>
+  </div>
+</section>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>
